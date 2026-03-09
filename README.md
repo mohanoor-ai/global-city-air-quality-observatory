@@ -467,6 +467,23 @@ The detailed phased project plan is maintained in:
 
 ---
 
+# Current Status
+
+Current stage: **MVP complete (end-to-end local and cloud flow)**.
+
+Implemented:
+
+* ingestion to Bronze (`csv.gz`)
+* processing to Silver (Parquet)
+* data quality gate with JSON report output
+* GCS + BigQuery warehouse load
+* dbt staging + marts
+* Airflow DAG orchestration (`processing -> dq -> warehouse -> dbt run -> dbt test`)
+* unit tests and CI workflow
+* dashboard setup guide and dashboard-ready mart
+
+---
+
 # What This Project Demonstrates
 
 This project demonstrates practical data engineering skills including:

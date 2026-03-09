@@ -138,6 +138,7 @@ celerybeat.pid
 .env
 .envrc
 .venv
+.venv-dbt
 env/
 venv/
 ENV/
@@ -237,6 +238,7 @@ terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.backup
 terraform/tfplan
+dbt/air_quality_project/profiles.yml
 
 # OS files
 .DS_Store

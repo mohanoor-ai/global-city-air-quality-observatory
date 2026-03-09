@@ -99,16 +99,16 @@ Status: planned
 
 ## Phase 8 — dbt Modeling
 
-Status: planned
+Status: in progress (staging + first mart running)
 
-- [ ] create `dbt/air_quality_project`
-- [ ] configure BigQuery connection
-- [ ] build staging model `stg_air_quality`
-- [ ] standardize columns and enforce types
+- [x] create `dbt/air_quality_project`
+- [x] configure BigQuery connection
+- [x] build staging model `stg_air_quality`
+- [x] standardize columns and enforce types
 - [ ] build intermediate model `int_pollution_daily`
 - [ ] aggregate by day and city
 - [ ] build marts:
-- [ ] `mart_pollution_by_city`
+- [x] `mart_pollution_by_city`
 - [ ] `mart_pollution_by_country`
 - [ ] `mart_pollution_trends`
 

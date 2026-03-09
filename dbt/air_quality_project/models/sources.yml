@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: warehouse
+    database: aq-pipeline-260309-5800
+    schema: air_quality_dw
+    tables:
+      - name: air_quality_measurements
+        description: Cleaned air quality measurements loaded from Silver parquet.

@@ -1,0 +1,12 @@
+air_quality_project:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: aq-pipeline-260309-5800
+      dataset: air_quality_dbt
+      location: EU
+      threads: 4
+      job_execution_timeout_seconds: 300
+      job_retries: 1

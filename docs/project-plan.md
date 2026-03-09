@@ -126,7 +126,7 @@ Status: planned
 
 Status: planned
 
-- [ ] create Airflow DAG `air_quality_pipeline_dag.py`
+- [x] create Airflow DAG `air_quality_pipeline_dag.py`
 - [ ] orchestrate ingestion
 - [ ] orchestrate processing
 - [ ] orchestrate upload

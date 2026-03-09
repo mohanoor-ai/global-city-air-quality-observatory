@@ -16,7 +16,7 @@ OpenAQ
 → Python ingestion  
 → Bronze raw csv.gz files  
 → Processing and Silver Parquet output  
-→ Data quality checks  
+→ Data quality gate  
 → Google Cloud Storage (bronze/silver)  
 → BigQuery tables  
 → dbt models  
@@ -140,15 +140,15 @@ The full sequence of steps is:
 
 extract data from OpenAQ
 
-save raw Parquet files
-
-upload raw files to GCS
+save Bronze csv.gz files locally
 
 clean and transform the data
 
-save curated Parquet files
+save Silver Parquet files
 
-upload curated files to GCS
+run data quality gate checks
+
+upload Bronze and Silver files to GCS
 
 load data into BigQuery
 
@@ -163,13 +163,15 @@ OpenAQ
   ↓
 Python Ingestion
   ↓
-Raw Parquet
-  ↓
-GCS Raw Layer
+Bronze csv.gz
   ↓
 Processing / Cleaning
   ↓
-GCS Curated Layer
+Silver Parquet
+  ↓
+Data Quality Gate
+  ↓
+GCS Bronze/Silver
   ↓
 BigQuery
   ↓

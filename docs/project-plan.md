@@ -2,7 +2,7 @@
 
 ## Status Summary
 
-Current phase: **Phase 4 — Data Quality Checks**  
+Current phase: **Phase 4 — Data Quality Gate**  
 Overall state: **work in progress**
 
 ---
@@ -48,9 +48,9 @@ Status: implemented (local pipeline)
 - [x] rename columns
 - [x] convert datetime columns
 - [x] validate schema
-- [x] write `data/silver/air_quality_2020.parquet`
+- [x] write `data/silver/air_quality_location-<id>_<startdate>_<enddate>.parquet`
 
-## Phase 4 — Data Quality Checks
+## Phase 4 — Data Quality Gate
 
 Status: in progress (quality gate before warehouse)
 
@@ -177,7 +177,7 @@ Processing script
 ↓  
 Silver layer (Parquet)  
 ↓  
-Data quality checks  
+Data quality gate  
 ↓  
 Google Cloud Storage  
 ↓  

@@ -105,7 +105,7 @@ Bronze Data Lake Layer (raw csv.gz files)
         ↓
 Silver Layer (cleaned parquet dataset)
         ↓
-Data Quality Checks (schema, nulls, pollutants, dates)
+Data Quality Gate (schema, nulls, pollutants, dates)
         ↓
 Data Warehouse (BigQuery)
         ↓
@@ -236,7 +236,7 @@ Processing steps include:
 Example output:
 
 ```
-data/silver/air_quality_2020.parquet
+data/silver/air_quality_location-<id>_<startdate>_<enddate>.parquet
 ```
 
 ---
@@ -407,7 +407,7 @@ data/silver/air_quality_location-<id>_<startdate>_<enddate>.parquet
 
 ---
 
-### 3 Data Quality Check (After Silver Output Exists)
+### 3 Data Quality Gate (After Silver Output Exists)
 
 ```bash
 uv run python processing/check_silver_data_quality.py

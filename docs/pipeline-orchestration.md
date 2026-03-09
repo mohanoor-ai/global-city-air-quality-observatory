@@ -14,11 +14,11 @@ The project follows this flow:
 
 OpenAQ  
 → Python ingestion  
-→ Raw Parquet files  
-→ Google Cloud Storage raw layer  
-→ Cleaning and transformation  
-→ Google Cloud Storage curated layer  
-→ BigQuery raw tables  
+→ Bronze raw csv.gz files  
+→ Processing and Silver Parquet output  
+→ Data quality checks  
+→ Google Cloud Storage (bronze/silver)  
+→ BigQuery tables  
 → dbt models  
 → Analytics tables  
 → Looker Studio dashboard  

@@ -213,6 +213,7 @@ __marimo__/
 data/raw/
 data/curated/
 data/processed/
+data/bronze/
 
 *.parquet
 *.csv

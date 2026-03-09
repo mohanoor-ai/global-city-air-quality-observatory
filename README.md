@@ -105,6 +105,8 @@ Bronze Data Lake Layer (raw csv.gz files)
         ↓
 Silver Layer (cleaned parquet dataset)
         ↓
+Data Quality Checks (schema, nulls, pollutants, dates)
+        ↓
 Data Warehouse (BigQuery)
         ↓
 dbt Transformations
@@ -126,6 +128,7 @@ Infrastructure provisioning will use **Terraform**.
 | --------------- | ------------------------------------ |
 | Ingestion       | Python                               |
 | Processing      | Pandas                               |
+| Data Quality    | Python (Pandas checks)               |
 | Storage         | CSV / Parquet                        |
 | Data Lake       | Local storage → Google Cloud Storage |
 | Warehouse       | BigQuery                             |
@@ -339,7 +342,7 @@ air-quality-data-pipeline
 
 ## Prerequisites
 
-* Python 3.10+
+* Python 3.14+
 * Docker
 * Google Cloud account
 * dbt
@@ -361,7 +364,7 @@ cd air-quality-data-pipeline
 Using **uv**:
 
 ```
-uv pip install -r requirements.txt
+uv sync
 ```
 
 ---
@@ -371,7 +374,7 @@ uv pip install -r requirements.txt
 ### 1 Ingest Data
 
 ```
-python ingestion/download_air_quality_data.py
+uv run python ingestion/download_air_quality_data.py
 ```
 
 This downloads **one full year of London monitoring data** from the OpenAQ AWS archive into the Bronze layer.
@@ -379,22 +382,49 @@ This downloads **one full year of London monitoring data** from the OpenAQ AWS a
 Example storage location:
 
 ```
-data/bronze/london/locationid=2178/year=2020/month=MM/
+data/bronze/london/location-2178-YYYYMMDD.csv.gz
 ```
 
 ---
 
-### 2 Clean Data (Next Step)
+### 2 Clean Data (Silver Layer)
 
-```
-python processing/clean_air_quality_data.py
+```bash
+uv run python processing/clean_air_quality_data.py
 ```
 
-This step will:
+This step:
 
 * read all Bronze `csv.gz` files
 * clean and filter the dataset
 * output Parquet files to the Silver layer
+
+Output file:
+
+```text
+data/silver/air_quality_location-<id>_<startdate>_<enddate>.parquet
+```
+
+---
+
+### 3 Data Quality Check (After Silver Output Exists)
+
+```bash
+uv run python processing/check_silver_data_quality.py
+```
+
+Optional (check a specific Silver file):
+
+```bash
+uv run python processing/check_silver_data_quality.py data/silver/air_quality_location-2178_20200101_20210101.parquet
+```
+
+This validates the Silver dataset before warehouse loading:
+
+* required schema columns
+* allowed pollutants
+* missing values in key fields
+* datetime parse + date range
 
 ---
 
@@ -406,16 +436,11 @@ Future warehouse access credentials should **never be committed to GitHub**.
 
 ---
 
-# Future Improvements
+# Project Roadmap
 
-Possible enhancements include:
+The detailed phased project plan is maintained in:
 
-* ingestion for multiple cities
-* automated data quality checks
-* CI/CD pipeline
-* anomaly detection for pollution spikes
-* geospatial pollution analysis
-* real-time streaming ingestion
+`docs/project-plan.md`
 
 ---
 

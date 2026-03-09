@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: mart_pollution_by_country
+    description: Pollution summary by pollutant at portfolio scope.
+    columns:
+      - name: pollutant
+        tests:
+          - not_null
+      - name: measurement_count
+        tests:
+          - not_null

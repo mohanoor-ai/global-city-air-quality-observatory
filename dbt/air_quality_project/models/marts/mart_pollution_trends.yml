@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: mart_pollution_trends
+    description: Daily pollution trends by pollutant.
+    columns:
+      - name: measurement_date
+        tests:
+          - not_null
+      - name: pollutant
+        tests:
+          - not_null
+      - name: measurement_count
+        tests:
+          - not_null

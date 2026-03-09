@@ -109,8 +109,8 @@ Status: in progress (staging + first mart running)
 - [ ] aggregate by day and city
 - [ ] build marts:
 - [x] `mart_pollution_by_city`
-- [ ] `mart_pollution_by_country`
-- [ ] `mart_pollution_trends`
+- [x] `mart_pollution_by_country`
+- [x] `mart_pollution_trends`
 
 ## Phase 9 — Dashboard
 

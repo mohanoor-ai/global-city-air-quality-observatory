@@ -181,6 +181,10 @@ Example fields:
 - pollutant description
 - unit
 
+---
+
+# dbt Model Layers
+
 ## Staging Layer
 
 The staging layer will clean and standardize raw warehouse data.

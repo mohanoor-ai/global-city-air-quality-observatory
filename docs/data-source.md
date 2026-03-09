@@ -1,147 +1,97 @@
-# Data Source
+"""
+Air Quality Data Ingestion
 
-This document describes the dataset used in the project.
+This script downloads the latest PM2.5 air quality measurements
+from the OpenAQ API v3 and stores them locally as a Parquet file.
 
----
+Why this approach:
+- OpenAQ API v2 is retired
+- v3 provides a /parameters/{id}/latest endpoint
+- this gives us a simple and stable starting point for the pipeline
+"""
 
-## Source
+from pathlib import Path
 
-The data comes from **OpenAQ**.
+import pandas as pd
+import requests
 
-OpenAQ is a platform that provides open air quality measurements from monitoring stations around the world.
 
-Website:
+API_URL = "https://api.openaq.org/v3/parameters/2/latest"
+OUTPUT_DIR = Path("data/raw")
+OUTPUT_FILE = OUTPUT_DIR / "air_quality_raw.parquet"
 
-https://openaq.org
 
----
+def fetch_latest_air_quality(limit: int = 1000, page: int = 1) -> list[dict]:
+    """
+    Fetch the latest PM2.5 measurements from OpenAQ API v3.
 
-## Why This Dataset
+    Args:
+        limit: Number of records to request
+        page: Page number
 
-This dataset is useful because it contains real-world environmental measurements that can be used to analyze pollution trends.
+    Returns:
+        List of measurement records
+    """
+    params = {
+        "limit": limit,
+        "page": page,
+    }
 
-It allows us to answer questions such as:
+    response = requests.get(API_URL, params=params, timeout=30)
+    response.raise_for_status()
 
-- which countries have the highest pollution levels
-- how pollution changes over time
-- which pollutants are most common
-- which areas are more affected than others
+    payload = response.json()
+    return payload.get("results", [])
 
-This makes it a good dataset for an end-to-end data engineering project.
 
----
+def normalize_results(results: list[dict]) -> pd.DataFrame:
+    """
+    Convert nested JSON results into a flat pandas DataFrame.
+    """
+    df = pd.json_normalize(results)
 
-## Data Access Method
+    # Optional: rename a few important columns to make them clearer
+    rename_map = {
+        "datetime.utc": "measurement_datetime_utc",
+        "datetime.local": "measurement_datetime_local",
+        "coordinates.latitude": "latitude",
+        "coordinates.longitude": "longitude",
+        "locationsId": "location_id",
+        "sensorsId": "sensor_id",
+    }
 
-The project uses OpenAQ as the source of air quality measurements.
+    df = df.rename(columns=rename_map)
 
-The data is accessed through:
+    return df
 
-- API-based extraction
-- structured ingestion pipeline
 
-The ingestion step will pull data from OpenAQ and convert it into a format suitable for analytics.
+def save_to_parquet(df: pd.DataFrame) -> None:
+    """
+    Save the DataFrame to the raw data folder as Parquet.
+    """
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(OUTPUT_FILE, index=False)
+    print(f"Raw data saved to: {OUTPUT_FILE}")
 
----
 
-## Main Pollutants
+def main() -> None:
+    print("Downloading latest PM2.5 air quality data from OpenAQ v3...")
 
-The dataset includes measurements for pollutants such as:
+    results = fetch_latest_air_quality(limit=1000, page=1)
 
-- PM2.5
-- PM10
-- NO2
-- SO2
-- CO
-- O3
+    if not results:
+        print("No data returned from the API.")
+        return
 
-These pollutants are commonly used in air quality analysis.
+    df = normalize_results(results)
 
----
+    print(f"Downloaded {len(df)} records")
+    print("Saving dataset as Parquet...")
 
-## Important Fields
+    save_to_parquet(df)
 
-The exact schema may vary depending on the API response, but the project is mainly interested in fields related to:
+    print("Ingestion completed successfully.")
 
-- pollutant name
-- measurement value
-- measurement unit
-- timestamp
-- location or city
-- country
-- coordinates
 
-These are the fields needed to build analytics tables and dashboards.
-
----
-
-## Fields We Intend to Keep
-
-The project will focus on fields needed for analysis and reporting.
-
-Examples of useful fields include:
-
-- measurement timestamp
-- pollutant
-- value
-- unit
-- city
-- country
-- latitude
-- longitude
-
----
-
-## Fields We May Ignore
-
-The source may include metadata fields that are not important for the dashboard or warehouse model.
-
-Examples may include:
-
-- technical API metadata
-- fields not needed for analytics
-- duplicate nested information
-
-These can be dropped during the cleaning and transformation stages.
-
----
-
-## Expected Data Volume
-
-The OpenAQ platform contains a large volume of data collected from many stations across many countries.
-
-This makes it suitable for demonstrating:
-
-- ingestion
-- cloud storage
-- warehousing
-- transformations
-- orchestration
-- dashboarding
-
----
-
-## Role in the Pipeline
-
-The OpenAQ data is the starting point of the project.
-
-The planned flow is:
-
-OpenAQ  
-→ Python ingestion  
-→ Parquet files  
-→ Google Cloud Storage  
-→ BigQuery  
-→ dbt  
-→ Dashboard
-
----
-
-## Notes
-
-As the project develops, this document should be updated with:
-
-- confirmed source endpoints
-- exact fields extracted
-- example records
-- final schema decisions
+if __name__ == "__main__":
+    main()

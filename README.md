@@ -424,8 +424,15 @@ This validates the Silver dataset before warehouse loading:
 
 * required schema columns
 * allowed pollutants
+* pollutant distribution
 * missing values in key fields
 * datetime parse + date range
+
+Output report:
+
+```text
+data/quality/<silver_file>_dq_report.json
+```
 
 ---
 

@@ -52,11 +52,11 @@ Status: implemented (local pipeline)
 
 ## Phase 4 — Data Quality Gate
 
-Status: in progress (quality gate before warehouse)
+Status: implemented (quality gate before warehouse)
 
 - [x] run Silver dataset quality checks
 - [x] check row counts
-- [ ] verify pollutant distribution
+- [x] verify pollutant distribution
 - [x] verify timestamps
 - [x] check missing values
 - [x] inspect schema
@@ -64,13 +64,13 @@ Status: in progress (quality gate before warehouse)
 
 ## Phase 5 — Cloud Infrastructure
 
-Status: planned
+Status: in progress (Terraform scaffold added)
 
 - [ ] create GCP project
 - [ ] create service account
 - [ ] configure credentials
-- [ ] provision GCS bucket via Terraform
-- [ ] provision BigQuery dataset via Terraform
+- [x] provision GCS bucket via Terraform (scaffold)
+- [x] provision BigQuery dataset via Terraform (scaffold)
 
 ## Phase 6 — Data Lake Storage
 

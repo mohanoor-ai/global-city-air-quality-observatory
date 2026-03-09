@@ -1,0 +1,6 @@
+project_id          = "your-gcp-project-id"
+region              = "europe-west2"
+gcs_bucket_name     = "air-quality-data-lake-yourname"
+bucket_location     = "EU"
+bigquery_dataset_id = "air_quality_dw"
+bigquery_location   = "EU"

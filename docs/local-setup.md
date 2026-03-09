@@ -2,26 +2,38 @@
 
 This document explains how to set up the project locally for development.
 
-The goal is to make the project easy to run, test, and reproduce.
+---
+
+## Python Environment
+
+```bash
+uv sync
+```
 
 ---
 
-## What This Setup Covers
+## Terraform Setup
 
-This setup prepares the local environment for:
+From the project root:
 
-- Python development
-- Apache Airflow
-- Terraform
-- Google Cloud authentication
-- dbt
-- Docker-based services
+```bash
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+```
+
+Edit `terraform/terraform.tfvars` with your real GCP values.
+
+Then run:
+
+```bash
+cd terraform
+terraform init
+terraform plan
+terraform apply
+```
 
 ---
 
-## Project Folder
+## Notes
 
-The project should be cloned locally into a folder such as:
-
-```text
-~/projects/air-quality-data-pipeline
+- `terraform/terraform.tfvars` is ignored by git.
+- `terraform/terraform.tfvars.example` is the committed template.

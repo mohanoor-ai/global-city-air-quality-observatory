@@ -231,6 +231,7 @@ logs/
 # Local configuration
 config/local_config.yaml
 secrets/
+terraform/terraform.tfvars
 
 # OS files
 .DS_Store

@@ -10,3 +10,25 @@ resource "google_bigquery_dataset" "warehouse" {
   location                   = var.bigquery_location
   delete_contents_on_destroy = false
 }
+
+resource "google_bigquery_table" "air_quality_measurements" {
+  dataset_id = google_bigquery_dataset.warehouse.dataset_id
+  table_id   = var.bigquery_table_id
+
+  schema = <<EOF
+[
+  {"name": "measurement_datetime", "type": "TIMESTAMP", "mode": "REQUIRED"},
+  {"name": "location_name", "type": "STRING", "mode": "REQUIRED"},
+  {"name": "latitude", "type": "FLOAT", "mode": "REQUIRED"},
+  {"name": "longitude", "type": "FLOAT", "mode": "REQUIRED"},
+  {"name": "pollutant", "type": "STRING", "mode": "REQUIRED"},
+  {"name": "value", "type": "FLOAT", "mode": "REQUIRED"},
+  {"name": "unit", "type": "STRING", "mode": "REQUIRED"}
+]
+EOF
+
+  time_partitioning {
+    type  = "DAY"
+    field = "measurement_datetime"
+  }
+}

@@ -31,3 +31,9 @@ variable "bigquery_location" {
   type        = string
   default     = "EU"
 }
+
+variable "bigquery_table_id" {
+  description = "BigQuery table ID for cleaned air quality measurements"
+  type        = string
+  default     = "air_quality_measurements"
+}

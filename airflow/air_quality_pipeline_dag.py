@@ -5,6 +5,7 @@ Pipeline order:
 1. Build Silver dataset
 2. Run data quality gate
 3. Load data into BigQuery warehouse
+4. Run dbt transformations
 """
 
 from datetime import datetime, timedelta
@@ -14,6 +15,7 @@ from airflow.operators.bash import BashOperator
 
 
 PROJECT_ROOT = "/home/moha_/projects/air-quality-data-pipeline"
+DBT_PROJECT_DIR = f"{PROJECT_ROOT}/dbt/air_quality_project"
 
 default_args = {
     "owner": "air-quality-pipeline",
@@ -54,4 +56,15 @@ with DAG(
         ),
     )
 
-    build_silver >> data_quality_gate >> load_warehouse
+    dbt_run = BashOperator(
+        task_id="dbt_run",
+        bash_command=(
+            f"cd {DBT_PROJECT_DIR} && "
+            "DBT_PROFILES_DIR=$(pwd) "
+            "CLOUDSDK_CONFIG=/tmp/gcloud "
+            "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json "
+            f"{PROJECT_ROOT}/.venv-dbt/bin/dbt run"
+        ),
+    )
+
+    build_silver >> data_quality_gate >> load_warehouse >> dbt_run

@@ -124,14 +124,14 @@ Status: planned
 
 ## Phase 10 — Orchestration
 
-Status: planned
+Status: in progress
 
 - [x] create Airflow DAG `air_quality_pipeline_dag.py`
 - [ ] orchestrate ingestion
-- [ ] orchestrate processing
+- [x] orchestrate processing
 - [ ] orchestrate upload
-- [ ] orchestrate warehouse load
-- [ ] orchestrate `dbt run`
+- [x] orchestrate warehouse load
+- [x] orchestrate `dbt run`
 
 ## Phase 11 — Testing
 

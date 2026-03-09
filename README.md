@@ -436,6 +436,21 @@ data/quality/<silver_file>_dq_report.json
 
 ---
 
+### 4 Load to BigQuery Warehouse
+
+```bash
+uv run python warehouse/load_to_bigquery.py
+```
+
+This step:
+
+* uploads the latest Silver file to `gs://aq-lake-moha/silver/`
+* loads staging table `air_quality_measurements_staging`
+* refreshes target table `air_quality_measurements`
+* prints final target row count
+
+---
+
 # Security
 
 The AWS OpenAQ archive is **public**, so no credentials are required.

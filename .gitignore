@@ -232,6 +232,11 @@ logs/
 config/local_config.yaml
 secrets/
 terraform/terraform.tfvars
+.tools/
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/tfplan
 
 # OS files
 .DS_Store

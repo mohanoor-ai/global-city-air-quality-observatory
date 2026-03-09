@@ -6,6 +6,7 @@ Pipeline order:
 2. Run data quality gate
 3. Load data into BigQuery warehouse
 4. Run dbt transformations
+5. Run dbt tests
 """
 
 from datetime import datetime, timedelta
@@ -67,4 +68,15 @@ with DAG(
         ),
     )
 
-    build_silver >> data_quality_gate >> load_warehouse >> dbt_run
+    dbt_test = BashOperator(
+        task_id="dbt_test",
+        bash_command=(
+            f"cd {DBT_PROJECT_DIR} && "
+            "DBT_PROFILES_DIR=$(pwd) "
+            "CLOUDSDK_CONFIG=/tmp/gcloud "
+            "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json "
+            f"{PROJECT_ROOT}/.venv-dbt/bin/dbt test"
+        ),
+    )
+
+    build_silver >> data_quality_gate >> load_warehouse >> dbt_run >> dbt_test

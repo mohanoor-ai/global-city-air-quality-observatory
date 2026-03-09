@@ -1,221 +1,236 @@
-# Pipeline Orchestration
-
-This document describes how the data pipeline will be orchestrated.
-
-The pipeline will be orchestrated using **Apache Airflow**.
-
-Airflow will schedule and execute each step of the batch workflow.
-
----
-
 # Pipeline Overview
 
-The pipeline will run as a scheduled batch job.
+This document provides a complete overview of the project pipeline.
 
-The DAG will orchestrate the following stages:
+It explains how data moves through the system from the source to the final dashboard.
 
-1. extract data from the OpenAQ source
-2. store raw files locally
-3. upload raw files to Google Cloud Storage
-4. clean and transform the raw data
-5. store curated data in the data lake
-6. load curated data into BigQuery
-7. run dbt transformations
-8. verify pipeline success
+The goal is to make the architecture easy to understand for reviewers, collaborators, and recruiters.
 
 ---
 
-# Pipeline DAG
+# End-to-End Flow
 
-The Airflow DAG will represent the entire workflow.
+The project follows this flow:
 
-Example DAG name:
+OpenAQ  
+→ Python ingestion  
+→ Raw Parquet files  
+→ Google Cloud Storage raw layer  
+→ Cleaning and transformation  
+→ Google Cloud Storage curated layer  
+→ BigQuery raw tables  
+→ dbt models  
+→ Analytics tables  
+→ Looker Studio dashboard  
 
-air_quality_batch_pipeline
-
-The DAG will define task dependencies and execution order.
-
----
-
-# Pipeline Tasks
-
-The pipeline will consist of several tasks.
-
-## Task 1 — Data Extraction
-
-Purpose:
-
-Download air quality measurements from OpenAQ.
-
-Output:
-
-Raw dataset saved locally.
-
-Example script:
-
-ingestion/download_air_quality_data.py
+Airflow orchestrates the workflow across these stages.
 
 ---
 
-## Task 2 — Upload Raw Data
+# Architecture Summary
 
-Purpose:
+The project uses a batch-oriented ELT design.
 
-Upload raw files to the raw data lake layer in Google Cloud Storage.
+## Source
 
-Destination:
+The source is the OpenAQ air quality dataset.
 
-gs://air-quality-data-lake/raw/openaq/
+This provides pollution measurements for pollutants such as:
 
----
-
-## Task 3 — Data Cleaning
-
-Purpose:
-
-Transform raw data into a structured format.
-
-Operations may include:
-
-- schema validation
-- column renaming
-- data type normalization
-- removal of invalid records
-
-Output:
-
-Cleaned Parquet files.
-
-Example script:
-
-processing/clean_air_quality_data.py
+- PM2.5
+- PM10
+- NO2
+- SO2
+- CO
+- O3
 
 ---
 
-## Task 4 — Upload Curated Data
+## Ingestion
 
-Purpose:
+Python scripts extract the data from OpenAQ.
 
-Upload cleaned data to the curated layer in the data lake.
+The ingestion step converts the source response into a structured tabular format and stores it as Parquet.
 
-Destination:
-
-gs://air-quality-data-lake/curated/air_quality/
+This keeps the ingestion layer aligned with modern data engineering practices.
 
 ---
 
-## Task 5 — Load Data into BigQuery
+## Raw Data Lake Layer
 
-Purpose:
+The raw layer stores source data with minimal modification.
 
-Load curated data into warehouse tables.
+Storage location example:
 
-Destination dataset example:
+```text
+gs://air-quality-data-lake/raw/openaq/year=YYYY/month=MM/
 
-air_quality_warehouse
+This layer acts as the source of truth.
 
----
+Curated Data Lake Layer
 
-## Task 6 — Run dbt Models
+The curated layer stores cleaned and structured Parquet files.
 
-Purpose:
+Storage location example:
+gs://air-quality-data-lake/curated/air_quality/year=YYYY/month=MM/
 
-Transform warehouse tables into analytics-ready tables.
+This layer is used for warehouse loading.
 
-Example commands:
+Data Warehouse
 
-dbt run
-dbt test
+Curated files are loaded into BigQuery.
 
----
+BigQuery stores the analytical tables used by dbt and the dashboard.
 
-## Task 7 — Pipeline Validation
+Warehouse examples:
 
-Purpose:
+raw measurement tables
 
-Verify that the pipeline completed successfully.
+fact table for air quality measurements
 
-Checks may include:
+dimension tables for location and pollutant
 
-- verifying row counts
-- confirming table updates
-- validating dbt tests
+Transformation Layer
 
----
+dbt transforms warehouse data into analytics-ready models.
 
-# Task Dependency Order
+dbt layers include:
 
-The DAG tasks will run in this order:
+staging
 
-extract_data
-↓
-upload_raw_data
-↓
-clean_data
-↓
-upload_curated_data
-↓
-load_bigquery
-↓
-run_dbt_models
-↓
-validate_pipeline
+intermediate
 
----
+marts
 
-# Pipeline Schedule
+These models prepare the final tables for reporting and dashboard use.
 
-The pipeline will run on a scheduled basis.
+Dashboard Layer
 
-Example schedule:
+The final dashboard is built in Looker Studio.
 
-Daily
+The dashboard presents key air quality metrics such as:
 
-This allows the dataset to stay up to date with new air quality measurements.
+pollution trends over time
 
----
+country-level comparisons
 
-# Error Handling
+city-level comparisons
 
-Airflow will handle task failures.
+pollutant distribution
 
-If a task fails:
+Orchestration
 
-- the pipeline will stop
-- logs will be available in Airflow
-- the failed task can be retried
+Apache Airflow manages the workflow.
 
----
+Airflow handles:
 
-# Monitoring
+scheduling
 
-Airflow provides monitoring through:
+task order
 
-- task status
-- execution logs
-- DAG execution history
+retries
 
-This allows easy debugging of pipeline failures.
+pipeline monitoring
 
----
+It ensures the full batch pipeline runs in the correct sequence.
 
-# Benefits of Airflow Orchestration
+Full Pipeline Sequence
 
-Using Airflow provides:
+The full sequence of steps is:
 
-- automated scheduling
-- clear task dependencies
-- centralized pipeline monitoring
-- retry logic for failed tasks
-- reproducible workflows
+extract data from OpenAQ
 
----
+save raw Parquet files
 
-# Future Improvements
+upload raw files to GCS
 
-Possible future improvements include:
+clean and transform the data
 
-- adding data quality checks
-- adding alerts for pipeline failures
-- increasing pipeline frequency
-- supporting streaming ingestion
+save curated Parquet files
+
+upload curated files to GCS
+
+load data into BigQuery
+
+run dbt models
+
+validate results
+
+update the dashboard
+
+High-Level Diagram
+OpenAQ
+  ↓
+Python Ingestion
+  ↓
+Raw Parquet
+  ↓
+GCS Raw Layer
+  ↓
+Processing / Cleaning
+  ↓
+GCS Curated Layer
+  ↓
+BigQuery
+  ↓
+dbt
+  ↓
+Analytics Tables
+  ↓
+Looker Studio Dashboard
+
+Airflow sits above this process and orchestrates the full workflow.
+
+Why This Design
+
+This design was chosen because it is:
+
+easy to understand
+
+aligned with Zoomcamp conventions
+
+cloud-based
+
+reproducible
+
+scalable
+
+suitable for analytics workflows
+
+It also clearly separates:
+
+ingestion
+
+storage
+
+transformation
+
+visualization
+
+Main Benefits
+
+This pipeline design provides:
+
+clear separation of raw and transformed data
+
+reusable storage in Parquet format
+
+strong compatibility with BigQuery and dbt
+
+simple orchestration with Airflow
+
+an understandable architecture for reviewers
+
+Expected Outcome
+
+When the project is complete, the system will:
+
+ingest air quality data automatically
+
+store data in a structured data lake
+
+transform data in the warehouse
+
+expose metrics through a dashboard
+
+provide useful insights into global air pollution trends

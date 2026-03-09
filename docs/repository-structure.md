@@ -10,14 +10,25 @@ The goal is to keep the project easy to understand, maintain, and reproduce.
 
 ```text
 air-quality-data-pipeline/
+├── README.md
+├── airflow/
+├── dashboards/
+├── data/
+├── dbt/
+├── docs/
+├── ingestion/
+├── processing/
+├── terraform/
+└── tests/
+```
 
-README.md
-airflow/
+## Key Pipeline Files
+
+```text
 ingestion/
+  download_air_quality_data.py
+
 processing/
-dbt/
-terraform/
-dashboards/
-docs/
-tests/
-data/
+  clean_air_quality_data.py
+  check_silver_data_quality.py   # Data quality checks (quality gate)
+```

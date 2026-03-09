@@ -6,7 +6,7 @@ The goal is to make it easy for anyone to clone the repository and run the pipel
 
 ---
 
-## Required Tools
+# Required Tools
 
 The following tools are required:
 
@@ -15,11 +15,12 @@ The following tools are required:
 - Docker
 - Terraform
 - Google Cloud SDK
-- VS Code
+- uv (Python package manager)
+- VS Code (recommended)
 
 ---
 
-## Verify Installation
+# Verify Installation
 
 Check that the required tools are installed.
 
@@ -31,3 +32,4 @@ python3 --version
 docker --version
 terraform --version
 gcloud --version
+uv --version

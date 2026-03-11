@@ -1,7 +1,10 @@
 select
   measurement_datetime,
   date(measurement_datetime) as measurement_date,
+  location_id,
   location_name,
+  coalesce(nullif(trim(city), ''), 'unknown') as city,
+  coalesce(nullif(trim(upper(country)), ''), 'UNKNOWN') as country,
   latitude,
   longitude,
   lower(pollutant) as pollutant,

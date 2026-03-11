@@ -1,84 +1,57 @@
 # Dashboard Guide (Looker Studio)
 
-This file explains how to connect Looker Studio to the project marts.
+Connect Looker Studio to dataset `air_quality_dbt_marts` in project `aq-pipeline-260309-5800`.
 
----
+Use these marts:
 
-## BigQuery Connection
+- `mart_pm25_by_country`
+- `mart_pm25_by_city`
+- `mart_pollution_trends`
+- `mart_pollutant_distribution`
+- `mart_extreme_pollution_events`
 
-1. Open Looker Studio and create a new report.
-2. Add data source: **BigQuery**.
-3. Select project: `aq-pipeline-260309-5800`.
-4. Select dataset: `air_quality_dbt_marts`.
-5. Add the following tables as data sources:
-   - `mart_pollution_by_city`
-   - `mart_pollution_by_country`
-   - `mart_pollution_trends`
-   - `mart_dashboard_daily_city_trends`
+## Suggested Dashboard Pages
 
----
+1. Global trend
+- Data source: `mart_pollution_trends`
+- Dimension: `month_start`
+- Breakdown: `pollutant`
+- Metric: `avg_value`
 
-## Recommended Charts
+2. Worst countries
+- Data source: `mart_pm25_by_country`
+- Dimension: `country`
+- Metric: `avg_pm25`
 
-### 1) Global Trend
+3. Worst cities
+- Data source: `mart_pm25_by_city`
+- Dimensions: `country`, `city`
+- Metric: `avg_pm25`
 
-Data source: `mart_pollution_trends`
+4. Pollutant comparison
+- Data source: `mart_pollutant_distribution`
+- Dimensions: `pollutant`, `country` or `city`
+- Metrics: `median_value`, `p95_value`, `max_value`
 
-- Dimension: `measurement_date`
-- Breakdown dimension: `pollutant`
-- Metric: `avg_pollution_value`
+5. Extreme events table
+- Data source: `mart_extreme_pollution_events`
+- Dimensions: `measurement_datetime`, `country`, `city`, `pollutant`
+- Metric: `value`
 
-Chart type: time series.
+## Filters
 
-### 2) Most Polluted Cities
+- Date filter on `month_start` or `measurement_datetime`
+- Pollutant filter
+- Country / city filters
 
-Data source: `mart_pollution_by_city`
+## Screenshot Evidence
 
-- Dimension: `location_name`
-- Breakdown dimension: `pollutant`
-- Metric: `avg_pollution_value`
-- Optional metric: `peak_pollution_value`
+Save dashboard screenshots under `images/` using these names:
 
-Chart type: bar chart (Top N).
+- `images/dashboard_global_trend.png`
+- `images/dashboard_worst_countries.png`
+- `images/dashboard_worst_cities.png`
+- `images/dashboard_pollutant_comparison.png`
+- `images/dashboard_extreme_events.png`
 
-### 3) Polluted Countries (Current Scope)
-
-Data source: `mart_pollution_by_country`
-
-Current ingestion scope is one location, so this table currently behaves as a
-portfolio-level pollutant summary. Replace with a true country mart after
-multi-country ingestion is added.
-
-- Dimension: `pollutant`
-- Metric: `avg_pollution_value`
-- Optional metric: `peak_pollution_value`
-
-Chart type: bar chart.
-
-### 4) Pollutant Comparison by City and Date
-
-Data source: `mart_dashboard_daily_city_trends`
-
-- Dimension: `measurement_date`
-- Breakdown dimensions: `location_name`, `pollutant`
-- Metric: `avg_pollution_value`
-
-Chart type: line chart with filters.
-
----
-
-## Filters to Add in Dashboard
-
-- Date range filter on `measurement_date`
-- Pollutant filter on `pollutant`
-- City filter on `location_name`
-
----
-
-## Refresh Guidance
-
-After pipeline run:
-
-1. Airflow tasks finish (`load_warehouse`, `dbt_run`, `dbt_test`).
-2. In Looker Studio, refresh the data source if needed.
-3. Validate row counts in each chart.
+Current status: pending capture.

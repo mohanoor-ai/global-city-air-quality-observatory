@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: mart_pm25_by_country
+    description: Monthly PM2.5 averages by country.
+    columns:
+      - name: month_start
+        tests:
+          - not_null
+      - name: country
+        tests:
+          - not_null
+      - name: avg_pm25
+        tests:
+          - not_null
+
+  - name: mart_pm25_by_city
+    description: Monthly PM2.5 averages by city and country.
+    columns:
+      - name: month_start
+        tests:
+          - not_null
+      - name: country
+        tests:
+          - not_null
+      - name: city
+        tests:
+          - not_null
+      - name: avg_pm25
+        tests:
+          - not_null
+
+  - name: mart_pollution_trends
+    description: Monthly pollution trend by pollutant.
+    columns:
+      - name: month_start
+        tests:
+          - not_null
+      - name: pollutant
+        tests:
+          - not_null
+      - name: avg_value
+        tests:
+          - not_null
+
+  - name: mart_pollutant_distribution
+    description: Pollutant distribution by location.
+    columns:
+      - name: country
+        tests:
+          - not_null
+      - name: city
+        tests:
+          - not_null
+      - name: pollutant
+        tests:
+          - not_null
+      - name: measurement_count
+        tests:
+          - not_null
+
+  - name: mart_extreme_pollution_events
+    description: Highest measured pollution events ranked per pollutant.
+    columns:
+      - name: measurement_datetime
+        tests:
+          - not_null
+      - name: pollutant
+        tests:
+          - not_null
+      - name: value
+        tests:
+          - not_null
+      - name: pollutant_rank
+        tests:
+          - not_null

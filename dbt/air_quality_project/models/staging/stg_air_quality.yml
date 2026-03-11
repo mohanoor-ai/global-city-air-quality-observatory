@@ -7,7 +7,16 @@ models:
       - name: measurement_datetime
         tests:
           - not_null
+      - name: location_id
+        tests:
+          - not_null
       - name: location_name
+        tests:
+          - not_null
+      - name: city
+        tests:
+          - not_null
+      - name: country
         tests:
           - not_null
       - name: pollutant

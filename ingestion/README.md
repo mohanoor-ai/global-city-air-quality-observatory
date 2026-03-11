@@ -1,104 +1,56 @@
-Data Ingestion
+# Ingestion Layer
 
-This folder contains the ingestion scripts for the Air Quality Data Pipeline.
+This folder contains Bronze ingestion for OpenAQ archive files.
 
-The ingestion stage is responsible for downloading air quality measurements from the OpenAQ dataset and storing them as raw files.
+## Modes
 
-These files represent the first step of the data pipeline.
+- `backfill`: downloads last 2 full years plus current year-to-date
+- `daily`: downloads only the newest available file per configured location
 
-Data Source
+## Location Targets
 
-The dataset used in this project comes from OpenAQ.
+`location_targets.csv` controls city/country scope.
 
-OpenAQ provides global air pollution measurements collected from monitoring stations.
+Required columns:
 
-Example pollutants included in the dataset:
+- `location_id`
+- `city`
+- `country`
 
-PM2.5
+The script writes `data/bronze/location_metadata.csv` from this file so downstream processing can preserve city and country fields.
 
-PM10
+Current starter scope is global (one city per inhabited continent) to keep the project lightweight while still comparable across regions.
 
-NO2
+## Commands
 
-SO2
+Find location IDs by city keyword (AWS archive, no API key):
 
-CO
+```bash
+uv run python ingestion/find_location_ids_from_aws.py --keyword delhi --max-matches 10
+```
 
-O3
+Backfill:
 
-These measurements include information such as:
+```bash
+uv run python ingestion/download_air_quality_data.py --mode backfill
+```
 
-pollutant type
+Daily:
 
-measured value
+```bash
+uv run python ingestion/download_air_quality_data.py --mode daily
+```
 
-timestamp
+Optional:
 
-location
+```bash
+uv run python ingestion/download_air_quality_data.py --mode backfill --overwrite
+```
 
-coordinates
+## Output
 
-Purpose of the Ingestion Layer
+Raw files are stored in Bronze with the OpenAQ key structure:
 
-The ingestion step performs the following tasks:
-
-download air quality data from the source
-
-convert the data into tabular format
-
-store the dataset as Parquet files
-
-prepare the data for the data lake
-
-The ingestion layer does not modify the data structure significantly.
-
-It focuses on capturing the data in its raw form.
-
-Output
-
-The ingestion script generates raw Parquet files.
-
-Example local output:
-
-data/raw/air_quality_raw.parquet
-
-These files represent the raw layer of the pipeline.
-
-Script
-
-The main ingestion script is:
-
-download_air_quality_data.py
-
-This script:
-
-calls the OpenAQ API
-
-downloads measurement data
-
-converts the results into a pandas DataFrame
-
-saves the dataset as a Parquet file
-
-Running the Ingestion Script
-
-Run the ingestion script using the project environment.
-
-Example:
-
-uv run python ingestion/download_air_quality_data.py
-
-After execution, the raw dataset will appear in:
-
-data/raw/
-Next Stage
-
-After ingestion, the next stage of the pipeline will:
-
-upload raw data to Google Cloud Storage
-
-clean and normalize the dataset
-
-generate curated datasets
-
-load data into BigQuery
+```text
+data/bronze/records/csv.gz/locationid=<id>/year=<yyyy>/month=<mm>/...
+```

@@ -5,17 +5,19 @@ This script:
 - reads Bronze csv.gz files one by one
 - filters selected pollutants
 - standardizes column names
+- enriches rows with city and country metadata
 - writes the cleaned dataset to Parquet
 """
 
-from pathlib import Path
 import re
+from pathlib import Path
 
 import pandas as pd
 
 
-BRONZE_DIR = Path("data/bronze/london")
+BRONZE_DIR = Path("data/bronze")
 SILVER_DIR = Path("data/silver")
+METADATA_FILE = BRONZE_DIR / "location_metadata.csv"
 
 POLLUTANTS = ["pm25", "pm10", "no2", "co", "o3"]
 POLLUTANT_ALIASES = {"pm2.5": "pm25"}
@@ -28,6 +30,23 @@ SILVER_COLUMN_MAP = {
     "parameter": "pollutant",
     "units": "unit",
 }
+
+
+def load_location_metadata() -> pd.DataFrame:
+    """Load location_id -> city/country mapping written during ingestion."""
+    if not METADATA_FILE.exists():
+        return pd.DataFrame(columns=["location_id", "city", "country"])
+
+    metadata = pd.read_csv(METADATA_FILE)
+    if metadata.empty:
+        return pd.DataFrame(columns=["location_id", "city", "country"])
+
+    metadata["location_id"] = pd.to_numeric(metadata["location_id"], errors="coerce")
+    metadata = metadata.dropna(subset=["location_id"]).copy()
+    metadata["location_id"] = metadata["location_id"].astype(int)
+    metadata["city"] = metadata["city"].astype(str).str.strip()
+    metadata["country"] = metadata["country"].astype(str).str.strip()
+    return metadata[["location_id", "city", "country"]]
 
 
 def build_output_path(df: pd.DataFrame, files: list[Path]) -> Path:
@@ -76,7 +95,7 @@ def process_file(file_path: Path) -> pd.DataFrame:
 
 def main() -> None:
     # 1) Discover Bronze files.
-    files = sorted(BRONZE_DIR.glob("*.csv.gz"))
+    files = sorted(BRONZE_DIR.rglob("*.csv.gz"))
     if not files:
         raise FileNotFoundError(f"No files found in {BRONZE_DIR}")
 
@@ -88,7 +107,35 @@ def main() -> None:
 
     # 3) Build one Silver dataset, ordered by event time.
     final_df = pd.concat(cleaned_data, ignore_index=True)
+    metadata_df = load_location_metadata()
+    if not metadata_df.empty and "location_id" in final_df.columns:
+        # Join city/country at location_id grain.
+        final_df["location_id"] = pd.to_numeric(final_df["location_id"], errors="coerce")
+        final_df = final_df.merge(metadata_df, on="location_id", how="left")
+    else:
+        final_df["city"] = pd.NA
+        final_df["country"] = pd.NA
+
+    # Keep a stable Silver schema even if metadata is missing.
+    final_df["location_id"] = pd.to_numeric(final_df["location_id"], errors="coerce").astype("Int64")
+    final_df["city"] = final_df["city"].fillna("unknown")
+    final_df["country"] = final_df["country"].fillna("unknown")
     final_df = final_df.sort_values("measurement_datetime").reset_index(drop=True)
+    final_df = final_df[
+        [
+            "measurement_datetime",
+            "location_id",
+            "location_name",
+            "city",
+            "country",
+            "latitude",
+            "longitude",
+            "pollutant",
+            "value",
+            "unit",
+            "sensor_id",
+        ]
+    ]
 
     # 4) Save using a descriptive filename for easy traceability.
     silver_path = build_output_path(final_df, files)

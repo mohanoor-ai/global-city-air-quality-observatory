@@ -1,5 +1,5 @@
 def main():
-    print("Hello from air-quality-data-pipeline!")
+    print("Use runbook.md for pipeline commands.")
 
 
 if __name__ == "__main__":

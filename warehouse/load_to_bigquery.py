@@ -114,12 +114,23 @@ def main() -> int:
             env=env,
         )
 
+        # Rebuild the curated table from staging so the downstream schema stays consistent.
         sql = (
-            f"TRUNCATE TABLE `{target_fq}`; "
-            f"INSERT INTO `{target_fq}` "
-            "(measurement_datetime, location_name, latitude, longitude, pollutant, value, unit) "
-            f"SELECT measurement_datetime, location_name, latitude, longitude, pollutant, value, unit "
-            f"FROM `{staging_fq}`;"
+            f"CREATE OR REPLACE TABLE `{target_fq}` AS "
+            "SELECT "
+            "  TIMESTAMP(measurement_datetime) AS measurement_datetime, "
+            "  DATE(measurement_datetime) AS measurement_date, "
+            "  CAST(location_id AS INT64) AS location_id, "
+            "  CAST(location_name AS STRING) AS location_name, "
+            "  CAST(city AS STRING) AS city, "
+            "  CAST(country AS STRING) AS country, "
+            "  CAST(latitude AS FLOAT64) AS latitude, "
+            "  CAST(longitude AS FLOAT64) AS longitude, "
+            "  LOWER(CAST(pollutant AS STRING)) AS pollutant, "
+            "  CAST(value AS FLOAT64) AS value, "
+            "  CAST(unit AS STRING) AS unit "
+            f"FROM `{staging_fq}` "
+            "WHERE measurement_datetime IS NOT NULL;"
         )
         run(
             [

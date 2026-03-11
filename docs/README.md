@@ -1,114 +1,21 @@
-# Project Documentation
+# Docs Index
 
-This folder contains the documentation for the Air Quality Data Pipeline project.
+This folder keeps short project notes that match the current implementation.
 
-The purpose of this folder is to explain the design decisions, architecture, and analytical goals of the project before implementation.
+## Core docs
 
-These documents make it easier for reviewers and collaborators to understand how the system works.
+- `data-source.md`: OpenAQ archive source and file pattern used by ingestion
+- `pipeline-overview.md`: high-level flow from Bronze to marts
+- `pipeline-orchestration.md`: Airflow DAG entrypoints and task chain
+- `data-lake-design.md`: local and cloud storage layout (`bronze` and `silver`)
+- `analytics-and-metrics.md`: dashboard question, metrics, and mart mapping
+- `architecture-decisions.md`: small set of decisions and trade-offs
+- `infrastructure.md`: what Terraform creates and what still needs manual setup
+- `repository-structure.md`: quick folder map
+- `environment-setup.md` and `local-setup.md`: tooling and local commands
+- `custom-location-testing.md`: how to run ingestion/pipeline with any custom city/location ID list
+- `project-plan.md`: honest implemented/partial/planned status
+- `review-guide.md`: 5-minute walkthrough for markers
+- `submission-notes.md`: final limitations and next steps
 
----
-
-# Documents in this Folder
-
-## Architecture
-
-Describes the overall system architecture and the technologies used in the pipeline.
-
-File:
-
-architecture.md
-
----
-
-## Environment Setup
-
-Explains how to set up the development environment required to run the project.
-
-File:
-
-environment-setup.md
-
----
-
-## Data Source
-
-Describes the air quality dataset used in the project and explains why it was selected.
-
-File:
-
-data-source.md
-
----
-
-## Repository Structure
-
-Explains the folder structure of the project and what each directory contains.
-
-File:
-
-repository-structure.md
-
----
-
-## Data Lake Design
-
-Describes how raw and processed data will be stored in the data lake.
-
-File:
-
-data-lake-design.md
-
----
-
-## Pipeline Orchestration
-
-Explains how the data pipeline will be scheduled and executed using Apache Airflow.
-
-File:
-
-pipeline-orchestration.md
-
----
-
-## Pipeline Overview
-
-Provides a high-level overview of how data flows through the system from ingestion to dashboard.
-
-File:
-
-pipeline-overview.md
-
----
-
-## Analytics Goals and Metrics
-
-Defines the analytical goals of the project and the key metrics that will appear in the final dashboard.
-
-File:
-
-analytics-goals-and-metrics.md
-
----
-
-# Purpose of the Documentation
-
-The documentation serves several purposes:
-
-- explain the system design
-- provide guidance for implementation
-- make the project easier to understand
-- help reviewers evaluate the project
-
----
-
-# Relation to the Implementation
-
-The documents in this folder describe the design of the pipeline.
-
-The actual implementation code is located in the main project directories such as:
-
-- ingestion
-- processing
-- airflow
-- dbt
-- dashboards
+If a doc conflicts with `README.md`, treat `README.md` as the source of truth and update the doc.

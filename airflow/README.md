@@ -1,40 +1,20 @@
 # Airflow DAGs
 
-This folder contains Airflow orchestration for the pipeline.
+This folder contains two simple DAG entrypoints:
 
----
+- `air_quality_backfill_pipeline_dag` (manual trigger, no schedule)
+- `air_quality_daily_pipeline_dag` (scheduled `@daily`)
 
-## DAG Included
+Both DAGs run the same task chain:
 
-- `air_quality_pipeline_dag`
-  - `build_silver`
-  - `data_quality_gate`
-  - `load_warehouse`
+`ingest_bronze -> build_silver -> data_quality_gate -> load_warehouse -> dbt_run -> dbt_test`
 
-Task order:
+The only difference is ingestion mode:
 
-`build_silver -> data_quality_gate -> load_warehouse`
+- backfill DAG runs `--mode backfill`
+- daily DAG runs `--mode daily`
 
----
-
-## Local Run (Quick Start)
-
-From the project root:
-
-```bash
-uv sync
-uv run python processing/clean_air_quality_data.py
-uv run python processing/check_silver_data_quality.py
-uv run python warehouse/load_to_bigquery.py
-```
-
-This runs the same steps the DAG orchestrates.
-
----
-
-## Airflow Notes
+## Notes
 
 - DAG file: `airflow/air_quality_pipeline_dag.py`
-- Project root used by DAG: `/home/moha_/projects/air-quality-data-pipeline`
-- Schedule: `@daily`
-- Catchup: `False`
+- Project root in DAG: `/home/moha_/projects/air-quality-data-pipeline`

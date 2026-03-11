@@ -1,11 +1,13 @@
 import json
 import tempfile
 import unittest
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import patch
 
 import pandas as pd
 
+from ingestion import download_air_quality_data as ingest
 from processing import check_silver_data_quality as dq
 from processing import clean_air_quality_data as clean
 
@@ -74,7 +76,10 @@ class TestDataQuality(unittest.TestCase):
                 [
                     {
                         "measurement_datetime": "2020-01-01T00:00:00+00:00",
+                        "location_id": 1,
                         "location_name": "Test Station",
+                        "city": "Test City",
+                        "country": "GB",
                         "latitude": 51.5,
                         "longitude": -0.1,
                         "pollutant": "pm25",
@@ -113,6 +118,31 @@ class TestDataQuality(unittest.TestCase):
                 exit_code = dq.main()
 
             self.assertEqual(exit_code, 1)
+
+
+class TestIngestion(unittest.TestCase):
+    def test_load_targets_reads_location_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            targets_file = Path(tmp) / "location_targets.csv"
+            targets_file.write_text(
+                "location_id,city,country\n2178,Albuquerque,US\n",
+                encoding="utf-8",
+            )
+
+            targets = ingest.load_targets(targets_file)
+
+            self.assertEqual(len(targets), 1)
+            self.assertEqual(targets[0].location_id, "2178")
+            self.assertEqual(targets[0].city, "Albuquerque")
+            self.assertEqual(targets[0].country, "US")
+
+    def test_backfill_months_last_two_full_years_plus_ytd(self) -> None:
+        now = datetime(2026, 3, 10, tzinfo=UTC)
+        periods = ingest.backfill_months(now)
+
+        self.assertEqual(periods[0], (2024, 1))
+        self.assertEqual(periods[-1], (2026, 3))
+        self.assertEqual(len(periods), 27)
 
 
 if __name__ == "__main__":

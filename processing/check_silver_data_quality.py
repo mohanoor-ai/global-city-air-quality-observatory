@@ -20,14 +20,17 @@ QUALITY_DIR = Path("data/quality")
 EXPECTED_POLLUTANTS = {"pm25", "pm10", "no2", "co", "o3"}
 REQUIRED_COLUMNS = {
     "measurement_datetime",
+    "location_id",
     "location_name",
+    "city",
+    "country",
     "latitude",
     "longitude",
     "pollutant",
     "value",
     "unit",
 }
-NULL_CHECK_COLUMNS = ["measurement_datetime", "pollutant", "value"]
+NULL_CHECK_COLUMNS = ["measurement_datetime", "location_id", "pollutant", "value"]
 
 
 def resolve_silver_path() -> Path | None:

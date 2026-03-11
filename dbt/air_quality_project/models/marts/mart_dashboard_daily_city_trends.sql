@@ -1,9 +1,0 @@
-select
-  measurement_date,
-  location_name,
-  pollutant,
-  round(avg(value), 3) as avg_pollution_value,
-  max(value) as peak_pollution_value,
-  count(*) as measurement_count
-from {{ ref('stg_air_quality') }}
-group by 1, 2, 3

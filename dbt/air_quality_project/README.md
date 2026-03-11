@@ -1,25 +1,25 @@
 # dbt Project
 
-This dbt project transforms warehouse air quality data into analytics models.
+This dbt project builds PM2.5-focused marts from `air_quality_measurements`.
 
-## Included Models
+## Models
 
-- `stg_air_quality` (staging view)
-- `mart_pollution_by_city` (city-level mart table)
+Staging:
 
-## Setup
+- `stg_air_quality`
 
-1. Copy profile template:
+Marts:
 
-```bash
-cp dbt/air_quality_project/profiles.yml.example ~/.dbt/profiles.yml
-```
+- `mart_pm25_by_country`
+- `mart_pm25_by_city`
+- `mart_pollution_trends`
+- `mart_pollutant_distribution`
+- `mart_extreme_pollution_events`
 
-2. Run dbt from project directory:
+## Run
 
 ```bash
 cd dbt/air_quality_project
-dbt debug
-dbt run
-dbt test
+DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt run
+DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt test
 ```

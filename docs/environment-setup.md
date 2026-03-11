@@ -1,35 +1,31 @@
 # Environment Setup
 
-This document explains how to prepare the development environment for this project.
-
-The goal is to make it easy for anyone to clone the repository and run the pipeline locally.
-
----
-
-# Required Tools
-
-The following tools are required:
+## Required tools
 
 - Git
-- Python 3.11 or newer
-- Docker
-- Terraform
-- Google Cloud SDK
-- uv (Python package manager)
-- VS Code (recommended)
+- Python 3.14+
+- `uv`
+- Google Cloud SDK (`gcloud`, `bq`)
+- Terraform (only if you want to provision cloud resources)
+- Airflow (only if you want to run DAGs locally)
 
----
-
-# Verify Installation
-
-Check that the required tools are installed.
-
-Run the following commands:
+## Quick checks
 
 ```bash
 git --version
 python3 --version
-docker --version
-terraform --version
-gcloud --version
 uv --version
+gcloud --version
+bq version
+terraform --version
+```
+
+## Install Python dependencies
+
+```bash
+uv sync
+```
+
+## dbt environment
+
+This repo uses a separate dbt virtual environment at `.venv-dbt` for dbt commands.

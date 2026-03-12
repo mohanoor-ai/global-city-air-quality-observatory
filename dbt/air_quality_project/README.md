@@ -19,7 +19,8 @@ Marts:
 ## Run
 
 ```bash
-cd dbt/air_quality_project
-DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt run
-DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt test
+gcloud auth login
+gcloud auth application-default login
+bash scripts/dbt_run.sh
+bash scripts/dbt_test.sh
 ```

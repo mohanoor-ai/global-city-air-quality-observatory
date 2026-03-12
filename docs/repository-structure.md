@@ -18,6 +18,8 @@ air-quality-data-pipeline/
 ├── docs/
 ├── ingestion/
 ├── processing/
+├── scripts/
+├── sql/
 ├── terraform/
 └── tests/
 ```
@@ -31,4 +33,13 @@ ingestion/
 processing/
   clean_air_quality_data.py
   check_silver_data_quality.py   # Data quality checks (quality gate)
+
+sql/
+  warehouse_validation.sql       # Warehouse-level validation queries
+  mart_validation.sql            # Mart-level row count + grain checks
+
+scripts/
+  dbt_run.sh                     # wrapper for dbt run
+  dbt_test.sh                    # wrapper for dbt test
+  compare_city_pollution.py      # quick city-vs-city pollution comparison
 ```

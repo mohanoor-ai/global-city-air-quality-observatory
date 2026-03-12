@@ -13,7 +13,6 @@ from airflow.operators.bash import BashOperator
 
 
 PROJECT_ROOT = "/home/moha_/projects/air-quality-data-pipeline"
-DBT_PROJECT_DIR = f"{PROJECT_ROOT}/dbt/air_quality_project"
 
 default_args = {
     "owner": "air-quality-pipeline",
@@ -63,11 +62,8 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
     dbt_run = BashOperator(
         task_id="dbt_run",
         bash_command=(
-            f"cd {DBT_PROJECT_DIR} && "
-            "DBT_PROFILES_DIR=$(pwd) "
-            "CLOUDSDK_CONFIG=/tmp/gcloud "
-            "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json "
-            f"{PROJECT_ROOT}/.venv-dbt/bin/dbt run"
+            f"cd {PROJECT_ROOT} && "
+            "bash scripts/dbt_run.sh"
         ),
         dag=dag,
     )
@@ -75,11 +71,8 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
     dbt_test = BashOperator(
         task_id="dbt_test",
         bash_command=(
-            f"cd {DBT_PROJECT_DIR} && "
-            "DBT_PROFILES_DIR=$(pwd) "
-            "CLOUDSDK_CONFIG=/tmp/gcloud "
-            "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json "
-            f"{PROJECT_ROOT}/.venv-dbt/bin/dbt test"
+            f"cd {PROJECT_ROOT} && "
+            "bash scripts/dbt_test.sh"
         ),
         dag=dag,
     )

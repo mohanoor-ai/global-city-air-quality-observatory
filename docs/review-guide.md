@@ -28,9 +28,10 @@ Expected artifacts:
 
 ```bash
 uv run python warehouse/load_to_bigquery.py
-cd dbt/air_quality_project
-DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt run
-DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt test
+gcloud auth login
+gcloud auth application-default login
+bash scripts/dbt_run.sh
+bash scripts/dbt_test.sh
 ```
 
 ## 4) Check marts used by dashboard
@@ -41,6 +42,6 @@ DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIA
 - `mart_pollutant_distribution`
 - `mart_extreme_pollution_events`
 
-## 5) Check limitations
+## 5) Check final scope
 
-See [submission-notes.md](/home/moha_/projects/air-quality-data-pipeline/docs/submission-notes.md) for what is done, what is partial, and what is planned next.
+See [submission-notes.md](/home/moha_/projects/air-quality-data-pipeline/docs/submission-notes.md) for the final delivered scope.

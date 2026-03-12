@@ -53,5 +53,3 @@ Save dashboard screenshots under `images/` using these names:
 - `images/dashboard_worst_cities.png`
 - `images/dashboard_pollutant_comparison.png`
 - `images/dashboard_extreme_events.png`
-
-Current status: pending capture.

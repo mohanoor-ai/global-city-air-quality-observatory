@@ -105,13 +105,20 @@ uv run python processing/clean_air_quality_data.py
 uv run python processing/check_silver_data_quality.py
 ```
 
+Quick city-vs-city comparison (PM2.5 by default):
+
+```bash
+uv run python scripts/compare_city_pollution.py --city-a "Delhi" --city-b "London"
+```
+
 Optional cloud steps:
 
 ```bash
 uv run python warehouse/load_to_bigquery.py
-cd dbt/air_quality_project
-DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt run
-DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt test
+gcloud auth login
+gcloud auth application-default login
+bash scripts/dbt_run.sh
+bash scripts/dbt_test.sh
 ```
 
 ## Implemented Now
@@ -140,4 +147,4 @@ DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIA
 - Custom city/location testing: `docs/custom-location-testing.md`
 - Infrastructure scope: `docs/infrastructure.md`
 - Review walkthrough: `docs/review-guide.md`
-- Current status and limitations: `docs/submission-notes.md`
+- Final scope summary: `docs/submission-notes.md`

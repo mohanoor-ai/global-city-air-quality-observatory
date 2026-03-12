@@ -219,6 +219,7 @@ data/quality/
 
 *.parquet
 *.csv
+!ingestion/location_targets.csv
 
 # Airflow
 airflow/logs/

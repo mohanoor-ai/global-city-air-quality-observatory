@@ -10,6 +10,7 @@ import pandas as pd
 from ingestion import download_air_quality_data as ingest
 from processing import check_silver_data_quality as dq
 from processing import clean_air_quality_data as clean
+from scripts import compare_city_pollution as compare
 
 
 class TestProcessing(unittest.TestCase):
@@ -143,6 +144,58 @@ class TestIngestion(unittest.TestCase):
         self.assertEqual(periods[0], (2024, 1))
         self.assertEqual(periods[-1], (2026, 3))
         self.assertEqual(len(periods), 27)
+
+
+class TestCityComparisonScript(unittest.TestCase):
+    def test_city_stats_returns_expected_values(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "measurement_datetime": "2024-01-01T00:00:00+00:00",
+                    "city": "Delhi",
+                    "pollutant": "pm25",
+                    "value": 100.0,
+                },
+                {
+                    "measurement_datetime": "2024-01-02T00:00:00+00:00",
+                    "city": "Delhi",
+                    "pollutant": "pm25",
+                    "value": 80.0,
+                },
+                {
+                    "measurement_datetime": "2024-01-01T00:00:00+00:00",
+                    "city": "London",
+                    "pollutant": "pm25",
+                    "value": 20.0,
+                },
+            ]
+        )
+
+        stats = compare.city_stats(df, city="Delhi", pollutant="pm25")
+
+        self.assertEqual(stats["measurement_count"], 2)
+        self.assertAlmostEqual(stats["avg_value"], 90.0)
+        self.assertEqual(stats["max_value"], 100.0)
+        self.assertIsNotNone(stats["date_min"])
+        self.assertIsNotNone(stats["date_max"])
+
+    def test_city_stats_handles_missing_city(self) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "measurement_datetime": "2024-01-01T00:00:00+00:00",
+                    "city": "Delhi",
+                    "pollutant": "pm25",
+                    "value": 100.0,
+                }
+            ]
+        )
+
+        stats = compare.city_stats(df, city="Cairo", pollutant="pm25")
+
+        self.assertEqual(stats["measurement_count"], 0)
+        self.assertIsNone(stats["avg_value"])
+        self.assertIsNone(stats["max_value"])
 
 
 if __name__ == "__main__":

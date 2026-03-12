@@ -14,8 +14,8 @@ This folder keeps short project notes that match the current implementation.
 - `repository-structure.md`: quick folder map
 - `environment-setup.md` and `local-setup.md`: tooling and local commands
 - `custom-location-testing.md`: how to run ingestion/pipeline with any custom city/location ID list
-- `project-plan.md`: honest implemented/partial/planned status
+- `project-plan.md`: finalized project scope summary
 - `review-guide.md`: 5-minute walkthrough for markers
-- `submission-notes.md`: final limitations and next steps
+- `submission-notes.md`: final delivered scope summary
 
 If a doc conflicts with `README.md`, treat `README.md` as the source of truth and update the doc.

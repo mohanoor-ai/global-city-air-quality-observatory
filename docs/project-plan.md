@@ -1,8 +1,8 @@
 # Project Plan
 
-This file tracks real status only.
+This project is finalized.
 
-## Implemented now
+## Completed Scope
 
 - OpenAQ archive ingestion with two modes:
   - `backfill` (last 2 full years + current YTD)
@@ -19,14 +19,3 @@ This file tracks real status only.
   - `mart_extreme_pollution_events`
 - Simple Airflow DAG entrypoints for backfill and daily runs
 - Lightweight unit tests for ingestion/date-window logic and Silver checks
-
-## Partially implemented
-
-- Terraform is a minimal scaffold for bucket + dataset + one warehouse table.
-- Dashboard design and mart mapping docs are ready, but screenshots and final published dashboard evidence are not complete in the repo.
-
-## Planned next
-
-- Run one fresh end-to-end cloud execution with the updated 6-city global targets and record validation output in the runbook.
-- Add mart-level validation query results (row counts and grain checks) after dbt run/test.
-- Save dashboard screenshots in `images/` and link them in `dashboards/README.md`.

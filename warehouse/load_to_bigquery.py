@@ -28,13 +28,13 @@ SILVER_DIR = Path("data/silver")
 def run(cmd: list[str], env: dict[str, str] | None = None) -> str:
     """Run a shell command and return stdout, failing fast on errors."""
     print(f"[RUN] {' '.join(cmd)}")
-    result = subprocess.run(
-        cmd,
-        check=True,
-        text=True,
-        capture_output=True,
-        env=env,
-    )
+    result = subprocess.run(cmd, check=False, text=True, capture_output=True, env=env)
+    if result.returncode != 0:
+        if result.stdout.strip():
+            print(result.stdout.strip())
+        if result.stderr.strip():
+            print(result.stderr.strip())
+        raise RuntimeError(f"Command failed with exit code {result.returncode}: {cmd}")
     if result.stdout.strip():
         print(result.stdout.strip())
     return result.stdout
@@ -114,12 +114,26 @@ def main() -> int:
             env=env,
         )
 
-        # Rebuild the curated table from staging so the downstream schema stays consistent.
-        sql = (
-            f"CREATE OR REPLACE TABLE `{target_fq}` AS "
+        # Rebuild curated table with explicit partitioning to match warehouse expectations.
+        drop_sql = f"DROP TABLE IF EXISTS `{target_fq}`;"
+        run(
+            [
+                "bq",
+                f"--project_id={args.project_id}",
+                f"--location={args.location}",
+                "query",
+                "--nouse_legacy_sql",
+                drop_sql,
+            ],
+            env=env,
+        )
+
+        create_sql = (
+            f"CREATE TABLE `{target_fq}` "
+            "PARTITION BY DATE(measurement_datetime) AS "
             "SELECT "
-            "  TIMESTAMP(measurement_datetime) AS measurement_datetime, "
-            "  DATE(measurement_datetime) AS measurement_date, "
+            "  SAFE_CAST(measurement_datetime AS TIMESTAMP) AS measurement_datetime, "
+            "  DATE(SAFE_CAST(measurement_datetime AS TIMESTAMP)) AS measurement_date, "
             "  CAST(location_id AS INT64) AS location_id, "
             "  CAST(location_name AS STRING) AS location_name, "
             "  CAST(city AS STRING) AS city, "
@@ -130,7 +144,7 @@ def main() -> int:
             "  CAST(value AS FLOAT64) AS value, "
             "  CAST(unit AS STRING) AS unit "
             f"FROM `{staging_fq}` "
-            "WHERE measurement_datetime IS NOT NULL;"
+            "WHERE SAFE_CAST(measurement_datetime AS TIMESTAMP) IS NOT NULL;"
         )
         run(
             [
@@ -139,7 +153,7 @@ def main() -> int:
                 f"--location={args.location}",
                 "query",
                 "--nouse_legacy_sql",
-                sql,
+                create_sql,
             ],
             env=env,
         )

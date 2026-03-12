@@ -29,3 +29,19 @@ uv sync
 ## dbt environment
 
 This repo uses a separate dbt virtual environment at `.venv-dbt` for dbt commands.
+
+## GCP authentication (recommended)
+
+Authenticate once:
+
+```bash
+gcloud auth login
+gcloud auth application-default login
+```
+
+Then run:
+
+```bash
+bash scripts/dbt_run.sh
+bash scripts/dbt_test.sh
+```

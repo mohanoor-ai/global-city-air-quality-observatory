@@ -8,7 +8,9 @@ This runbook contains the practical command sequence to run the pipeline.
 
 - `uv sync` completed
 - Terraform infrastructure already applied
-- GCP auth configured (`CLOUDSDK_CONFIG=/tmp/gcloud` in this project setup)
+- GCP authentication completed:
+  - `gcloud auth login`
+  - `gcloud auth application-default login`
 
 ---
 
@@ -25,6 +27,12 @@ uv run python processing/check_silver_data_quality.py
 uv run python warehouse/load_to_bigquery.py
 ```
 
+Optional quick comparison:
+
+```bash
+uv run python scripts/compare_city_pollution.py --city-a "Delhi" --city-b "London"
+```
+
 Daily refresh only:
 
 ```bash
@@ -38,12 +46,13 @@ uv run python warehouse/load_to_bigquery.py
 
 ## dbt Models
 
-Use the dbt Python 3.12 environment:
+Use the wrapper scripts:
 
 ```bash
-cd dbt/air_quality_project
-DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt run
-DBT_PROFILES_DIR=$(pwd) CLOUDSDK_CONFIG=/tmp/gcloud GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloud/application_default_credentials.json ../../.venv-dbt/bin/dbt test
+gcloud auth login
+gcloud auth application-default login
+bash scripts/dbt_run.sh
+bash scripts/dbt_test.sh
 ```
 
 ---
@@ -93,3 +102,8 @@ FROM `aq-pipeline-260309-5800.air_quality_dbt_marts.mart_pm25_by_city`
 GROUP BY month_start, country, city
 HAVING COUNT(*) > 1;
 ```
+
+Saved query files:
+
+- `sql/warehouse_validation.sql`
+- `sql/mart_validation.sql`

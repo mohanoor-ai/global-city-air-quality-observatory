@@ -117,6 +117,18 @@ bash scripts/dbt_test.sh
 uv run python main.py verify-quality-report
 ```
 
+Those commands map directly to the DAG task names:
+
+- `show_scope`
+- `download_data`
+- `verify_bronze`
+- `bronze_to_silver`
+- `silver_data_quality`
+- `load_bigquery`
+- `dbt_run`
+- `dbt_test`
+- `verify_quality_report`
+
 ## Daily Refresh Variant
 
 For the daily batch flow, replace the ingestion and Spark write mode with:

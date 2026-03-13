@@ -1,26 +1,26 @@
-# Review Guide
+# Reviewer guide
 
-## What This Project Does
+## What this project does
 
-Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and São Paulo using OpenAQ, GCS, Spark, BigQuery, dbt, Airflow, and Looker Studio.
+This project compares air pollution trends and pollutant patterns across five major global cities using a batch data engineering pipeline.
 
-## Why Five Cities
+## Why these five cities
 
-The project is limited to five cities so the capstone stays focused, analytically interesting, and reviewable in one sitting. The fixed scope gives geographic spread without turning the project into an over-broad global crawl.
+The project uses London, New York, Delhi, Beijing, and São Paulo to keep the scope fixed and make cross-city comparison meaningful.
 
-## Why Batch, Not Streaming
+## Why batch
 
-The source arrives as archive files and the project is designed around scheduled runs. A batch architecture matches the source format and keeps the operational story simple and defensible for the capstone rubric.
+The source data is processed on scheduled intervals, so a batch architecture is appropriate.
 
-## Why Spark Instead Of Pandas
+## Why Spark
 
-Spark is the main Bronze to Silver engine because the transformation layer now needs schema enforcement, timestamp normalization, pollutant standardization, metadata joins, deduplication, and partitioned parquet output across many raw files.
+Spark is used in the Bronze to Silver layer to demonstrate distributed data transformation instead of relying on Pandas.
 
-## What To Check
+## What the reviewer should check
 
-- Terraform: provisions GCS and BigQuery resources
-- Airflow: orchestrates the full batch pipeline in one DAG flow
-- Spark: performs the official Bronze to Silver transformation
-- BigQuery: stores the warehouse fact and dimensions
-- dbt: builds analytical marts for the dashboard
-- Looker Studio: presents the five-city comparison dashboard
+- Terraform provisions cloud resources
+- Airflow orchestrates the pipeline
+- Spark builds Silver data
+- BigQuery stores curated warehouse data
+- dbt builds marts
+- Looker Studio visualizes outputs

@@ -1,45 +1,22 @@
-# Dashboard Guide
+# Dashboard design
 
-This dashboard compares London, New York, Delhi, Beijing, and São Paulo through a focused five-city analytics story.
+This dashboard compares air pollution across five selected cities:
+London, New York, Delhi, Beijing, and São Paulo.
 
-The goal is not to rank every country or city in the world. The goal is to compare how pollution trends and pollutant patterns differ across the fixed capstone scope.
+## Main dashboard pages
 
-## Page 1: City Trend Over Time
+### 1. City trend over time
 
-- Purpose: show how pollution changes over time for the five selected cities
-- Main view: time-series trend chart by city
-- Recommended mart: `mart_city_pollution_trends`
-- Reviewer takeaway: city trajectories differ over time and should be compared directly, not through global ranking tables
+Shows pollutant measurements over time for each city.
 
-## Page 2: Pollutant Distribution By City
+### 2. Pollutant distribution by city
 
-- Purpose: compare pollutant mix and concentration profile across the five cities
-- Main view: grouped bar chart, stacked bar chart, or heatmap by city and pollutant
-- Recommended mart: `mart_city_pollutant_distribution`
-- Reviewer takeaway: each city has a different pollutant profile, not just a different overall level
+Shows the relative distribution of pollutants within each city.
 
-## Page 3: Cross-City Comparison
+### 3. Cross-city comparison
 
-- Purpose: give a compact comparison of the five cities on the same dashboard page
-- Main view: scorecards or comparison table
-- Recommended mart: `mart_city_comparison_summary`
-- Reviewer takeaway: the dashboard supports quick cross-city comparison without expanding into a global leaderboard
+Compares pollution measurements across the five cities.
 
-## Page 4: Extreme Events
+### 4. Extreme events
 
-- Purpose: surface unusual spikes and notable pollution events inside the selected city scope
-- Main view: ranked table or filtered event view
-- Recommended mart: `mart_city_extreme_events`
-- Reviewer takeaway: city averages alone do not show the most severe local events
-
-## Filters
-
-- date range
-- city
-- pollutant
-
-## Reviewer Notes
-
-- The dashboard is intentionally limited to five cities to keep the story readable and defensible.
-- The dashboard should show both a temporal comparison and a categorical comparison.
-- Screenshot evidence should be stored under [docs/images/](../docs/images/).
+Highlights unusually high pollution readings within the selected five-city scope.

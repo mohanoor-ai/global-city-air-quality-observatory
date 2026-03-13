@@ -16,5 +16,5 @@ The only difference is ingestion mode:
 
 Notes:
 
-- DAG file: `airflow/air_quality_pipeline_dag.py`
-- project root in DAG: `/home/moha_/projects/air-quality-data-pipeline`
+- DAG file: `airflow/global_city_air_quality_observatory_dag.py`
+- project root in DAG: resolved dynamically from the DAG file location

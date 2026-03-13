@@ -9,7 +9,7 @@ The goal is to keep the project easy to understand, maintain, and reproduce.
 ## Root Structure
 
 ```text
-air-quality-data-pipeline/
+global-city-air-quality-observatory/
 ├── README.md
 ├── airflow/
 ├── dashboards/
@@ -17,11 +17,13 @@ air-quality-data-pipeline/
 ├── dbt/
 ├── docs/
 ├── ingestion/
-├── spark/
+├── main.py
+├── runbook.md
 ├── scripts/
-├── sql/
+├── spark/
 ├── terraform/
-└── tests/
+├── tests/
+└── warehouse/
 ```
 
 ## Key Pipeline Files
@@ -29,14 +31,25 @@ air-quality-data-pipeline/
 ```text
 ingestion/
   download_air_quality_data.py
+  location_targets.csv
+  city_scope.py
 
 spark/
-  bronze_to_silver.py
-  check_silver_data_quality.py   # Data quality checks (quality gate)
+  bronze_to_silver.py            # Bronze to Silver Spark transformation
+  check_silver_data_quality.py   # Silver quality gate
 
-sql/
-  warehouse_validation.sql       # Warehouse-level validation queries
-  mart_validation.sql            # Mart-level row count + grain checks
+warehouse/
+  load_to_bigquery.py            # Partitioned and clustered BigQuery load
+
+airflow/
+  global_city_air_quality_observatory_dag.py    # Backfill and daily orchestration DAGs
+
+dbt/air_quality_project/models/marts/reporting/
+  mart_pm25_city_daily.sql
+  mart_city_pollution_trends.sql
+  mart_city_pollutant_distribution.sql
+  mart_city_extreme_events.sql
+  mart_city_comparison_summary.sql
 
 scripts/
   dbt_run.sh                     # wrapper for dbt run

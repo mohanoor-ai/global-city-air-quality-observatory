@@ -19,11 +19,11 @@ Pollutants:
 
 ## Layout suggestion
 
-1. Top filters: date, pollutant, country, city
-2. Global trend chart
-3. Worst countries and worst cities charts
-4. Pollutant comparison chart
-5. Extreme events table
+1. Top filters: date, pollutant, city
+2. PM2.5 city trend chart
+3. Pollutant distribution by city chart
+4. Optional city scorecard
+5. Optional extreme events table
 
 ## Chart rules
 

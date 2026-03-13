@@ -4,7 +4,7 @@ air_quality_project:
     dev:
       type: bigquery
       method: oauth
-      project: aq-pipeline-260309-5800
+      project: your-gcp-project-id
       dataset: air_quality_dbt
       location: EU
       threads: 4

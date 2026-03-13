@@ -36,7 +36,7 @@ Important values:
 - `JAVA_HOME`
 - `AIRFLOW_HOME`
 
-3. Apply Terraform.
+3. Apply Terraform to provision the GCS Bronze and Silver prefixes plus the BigQuery dataset and base warehouse tables.
 
 ```bash
 cd terraform
@@ -52,6 +52,14 @@ cd ..
 airflow db init
 airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@example.com --password admin
 ```
+
+Terraform creates:
+
+- one GCS bucket for the data lake
+- `bronze/` and `silver/` object prefixes
+- one BigQuery dataset for the warehouse
+- the partitioned and clustered fact table
+- the `dim_city` and `dim_pollutant` helper dimensions
 
 ## Execution
 
@@ -144,8 +152,8 @@ Expected dbt result:
 Expected DAG result:
 
 - each task succeeds from scope resolution through validation
-- screenshots can be stored at [images/airflow_backfill_success.png](/home/moha_/projects/air-quality-data-pipeline/images/airflow_backfill_success.png)
+- screenshots can be stored at [images/airflow_backfill_success.png](/home/moha_/projects/global-city-air-quality-observatory/images/airflow_backfill_success.png)
 
 ## Dashboard access
 
-Connect Looker Studio to the BigQuery marts dataset and use the tile mapping in [dashboards/README.md](/home/moha_/projects/air-quality-data-pipeline/dashboards/README.md).
+Connect Looker Studio to the BigQuery marts dataset and use the tile mapping in [dashboards/README.md](/home/moha_/projects/global-city-air-quality-observatory/dashboards/README.md).

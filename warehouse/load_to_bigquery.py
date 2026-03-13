@@ -7,8 +7,8 @@ import subprocess
 import sys
 
 
-DEFAULT_PROJECT_ID = "aq-pipeline-260309-5800"
-DEFAULT_BUCKET = "aq-lake-moha"
+DEFAULT_PROJECT_ID = "your-gcp-project-id"
+DEFAULT_BUCKET = "your-global-city-air-quality-observatory-bucket"
 DEFAULT_DATASET = "air_quality_dw"
 DEFAULT_FACT_TABLE = "fct_air_quality_measurements"
 DEFAULT_CITY_DIM_TABLE = "dim_city"

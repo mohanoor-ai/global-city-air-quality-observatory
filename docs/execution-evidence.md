@@ -4,12 +4,12 @@ This file is the checklist for proof-of-run artifacts.
 
 Store screenshots or pasted outputs for:
 
-- Airflow DAG success: [images/airflow_backfill_success.png](/home/moha_/projects/air-quality-data-pipeline/images/airflow_backfill_success.png)
-- BigQuery tables: [images/bigquery_tables.png](/home/moha_/projects/air-quality-data-pipeline/images/bigquery_tables.png)
-- dbt run and test output: [images/dbt_run_output.png](/home/moha_/projects/air-quality-data-pipeline/images/dbt_run_output.png)
-- dashboard: [images/dashboard_pm25_trend.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_pm25_trend.png)
-- Terraform apply summary: [images/terraform_apply_summary.png](/home/moha_/projects/air-quality-data-pipeline/images/terraform_apply_summary.png)
-- Spark job output: [images/spark_job_output.png](/home/moha_/projects/air-quality-data-pipeline/images/spark_job_output.png)
+- Airflow DAG success: [images/airflow_backfill_success.png](/home/moha_/projects/global-city-air-quality-observatory/images/airflow_backfill_success.png)
+- BigQuery tables: [images/bigquery_tables.png](/home/moha_/projects/global-city-air-quality-observatory/images/bigquery_tables.png)
+- dbt run and test output: [images/dbt_run_output.png](/home/moha_/projects/global-city-air-quality-observatory/images/dbt_run_output.png)
+- dashboard: [images/dashboard_pm25_trend.png](/home/moha_/projects/global-city-air-quality-observatory/images/dashboard_pm25_trend.png)
+- Terraform apply summary: [images/terraform_apply_summary.png](/home/moha_/projects/global-city-air-quality-observatory/images/terraform_apply_summary.png)
+- Spark job output: [images/spark_job_output.png](/home/moha_/projects/global-city-air-quality-observatory/images/spark_job_output.png)
 
 Local validation already available in this repo:
 
@@ -29,3 +29,11 @@ Result:
 - covered city scope validation, ingestion helper logic, Silver DQ checks, and city comparison metrics
 
 Cloud-side screenshots still need to be captured from a live GCP run because this refactor was completed without access to Airflow UI, BigQuery UI, Terraform apply output, or Looker Studio in this environment.
+
+Recommended evidence capture order:
+
+1. Save the Terraform apply summary.
+2. Save one Spark job success log and the Silver DQ report.
+3. Save the Airflow graph or grid view showing the full DAG succeeded.
+4. Save the BigQuery table list and one partitioned fact-table details view.
+5. Save the Looker Studio dashboard with the PM2.5 trend tile and pollutant distribution tile visible.

@@ -43,4 +43,4 @@ What happens when metadata is missing?
 
 How would a sixth city be added?
 
-- Add a new scoped location to [ingestion/location_targets.csv](/home/moha_/projects/air-quality-data-pipeline/ingestion/location_targets.csv), update [ingestion/city_scope.py](/home/moha_/projects/air-quality-data-pipeline/ingestion/city_scope.py), rerun ingestion, Spark, warehouse load, and dbt.
+- Add a new scoped location to [ingestion/location_targets.csv](/home/moha_/projects/global-city-air-quality-observatory/ingestion/location_targets.csv), update [ingestion/city_scope.py](/home/moha_/projects/global-city-air-quality-observatory/ingestion/city_scope.py), rerun ingestion, Spark, warehouse load, and dbt.

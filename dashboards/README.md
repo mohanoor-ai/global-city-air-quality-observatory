@@ -8,25 +8,25 @@ Dashboard goal: show how pollution trends and pollutant patterns differ across L
   chart: line chart
   mart: `mart_pm25_city_daily`
   question: how does daily PM2.5 move across the five cities over time?
-  screenshot: [images/dashboard_pm25_trend.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_pm25_trend.png)
+  screenshot: [images/dashboard_pm25_trend.png](/home/moha_/projects/global-city-air-quality-observatory/images/dashboard_pm25_trend.png)
 
 - Pollutant distribution by city
   chart: bar chart or stacked bar chart
   mart: `mart_city_pollutant_distribution`
   question: which pollutant profile stands out in each city?
-  screenshot: [images/dashboard_pollutant_distribution.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_pollutant_distribution.png)
+  screenshot: [images/dashboard_pollutant_distribution.png](/home/moha_/projects/global-city-air-quality-observatory/images/dashboard_pollutant_distribution.png)
 
 - Extreme pollution events
   chart: table
   mart: `mart_city_extreme_events`
   question: where did the biggest pollutant spikes happen?
-  screenshot: [images/dashboard_extreme_events.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_extreme_events.png)
+  screenshot: [images/dashboard_extreme_events.png](/home/moha_/projects/global-city-air-quality-observatory/images/dashboard_extreme_events.png)
 
 - City comparison scorecard
   chart: scorecards or compact table
   mart: `mart_city_comparison_summary`
   question: which city currently looks worst on average PM2.5 and PM10?
-  screenshot: [images/dashboard_city_scorecard.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_city_scorecard.png)
+  screenshot: [images/dashboard_city_scorecard.png](/home/moha_/projects/global-city-air-quality-observatory/images/dashboard_city_scorecard.png)
 
 ## Filters
 

@@ -26,11 +26,11 @@ I narrowed the project to exactly five cities for five reasons:
 - a dashboard that stays readable during a capstone demo
 - a manageable scope for backfill, validation, and reproducibility
 
-The city list is locked in [ingestion/location_targets.csv](/home/moha_/projects/air-quality-data-pipeline/ingestion/location_targets.csv) and validated by [ingestion/city_scope.py](/home/moha_/projects/air-quality-data-pipeline/ingestion/city_scope.py).
+The city list is locked in [ingestion/location_targets.csv](/home/moha_/projects/global-city-air-quality-observatory/ingestion/location_targets.csv) and validated by [ingestion/city_scope.py](/home/moha_/projects/global-city-air-quality-observatory/ingestion/city_scope.py).
 
 ## Architecture diagram
 
-Architecture image: [images/architecture_diagram.svg](/home/moha_/projects/air-quality-data-pipeline/images/architecture_diagram.svg)
+Architecture image: [images/architecture_diagram.svg](/home/moha_/projects/global-city-air-quality-observatory/images/architecture_diagram.svg)
 
 ```text
 OpenAQ AWS archive
@@ -66,8 +66,8 @@ Key source details:
 
 Relevant files:
 
-- [ingestion/download_air_quality_data.py](/home/moha_/projects/air-quality-data-pipeline/ingestion/download_air_quality_data.py)
-- [docs/data-source.md](/home/moha_/projects/air-quality-data-pipeline/docs/data-source.md)
+- [ingestion/download_air_quality_data.py](/home/moha_/projects/global-city-air-quality-observatory/ingestion/download_air_quality_data.py)
+- [docs/data-source.md](/home/moha_/projects/global-city-air-quality-observatory/docs/data-source.md)
 
 ## Data lake ingestion
 
@@ -83,7 +83,7 @@ Silver:
 
 - grain: one row per city, station, timestamp, pollutant measurement
 - storage: partitioned parquet in `silver/air_quality_measurements/`
-- produced by: [spark/bronze_to_silver.py](/home/moha_/projects/air-quality-data-pipeline/spark/bronze_to_silver.py)
+- produced by: [spark/bronze_to_silver.py](/home/moha_/projects/global-city-air-quality-observatory/spark/bronze_to_silver.py)
 
 Spark handles:
 
@@ -120,7 +120,7 @@ That layout matches the dashboard access pattern:
 
 Relevant file:
 
-- [warehouse/load_to_bigquery.py](/home/moha_/projects/air-quality-data-pipeline/warehouse/load_to_bigquery.py)
+- [warehouse/load_to_bigquery.py](/home/moha_/projects/global-city-air-quality-observatory/warehouse/load_to_bigquery.py)
 
 ## Transformations
 
@@ -134,7 +134,7 @@ Spark Silver layer:
 
 dbt layer:
 
-- stages warehouse data in [dbt/air_quality_project/models/staging/stg_air_quality.sql](/home/moha_/projects/air-quality-data-pipeline/dbt/air_quality_project/models/staging/stg_air_quality.sql)
+- stages warehouse data in [dbt/air_quality_project/models/staging/stg_air_quality.sql](/home/moha_/projects/global-city-air-quality-observatory/dbt/air_quality_project/models/staging/stg_air_quality.sql)
 - builds marts for dashboard queries
 
 Main dbt marts:
@@ -179,13 +179,13 @@ Optional supporting tiles:
 
 Dashboard docs and screenshots:
 
-- [dashboards/README.md](/home/moha_/projects/air-quality-data-pipeline/dashboards/README.md)
-- [images/dashboard_pm25_trend.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_pm25_trend.png)
-- [images/dashboard_pollutant_distribution.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_pollutant_distribution.png)
+- [dashboards/README.md](/home/moha_/projects/global-city-air-quality-observatory/dashboards/README.md)
+- [images/dashboard_pm25_trend.png](/home/moha_/projects/global-city-air-quality-observatory/images/dashboard_pm25_trend.png)
+- [images/dashboard_pollutant_distribution.png](/home/moha_/projects/global-city-air-quality-observatory/images/dashboard_pollutant_distribution.png)
 
 ## How to run
 
-The full setup and execution steps are in [runbook.md](/home/moha_/projects/air-quality-data-pipeline/runbook.md).
+The full setup and execution steps are in [runbook.md](/home/moha_/projects/global-city-air-quality-observatory/runbook.md).
 
 Short version:
 
@@ -225,7 +225,7 @@ Airflow DAGs:
 - Data warehouse -> BigQuery fact and dimension tables with partitioning and clustering
 - Transformations -> Spark Silver standardization plus dbt staging and marts
 - Dashboard -> Looker Studio dashboard with a temporal trend tile and a categorical distribution tile
-- Reproducibility -> this README, [runbook.md](/home/moha_/projects/air-quality-data-pipeline/runbook.md), [.env.example](/home/moha_/projects/air-quality-data-pipeline/.env.example), Terraform, and runnable commands
+- Reproducibility -> this README, [runbook.md](/home/moha_/projects/global-city-air-quality-observatory/runbook.md), [.env.example](/home/moha_/projects/global-city-air-quality-observatory/.env.example), Terraform, and runnable commands
 
 ## Limitations
 
@@ -244,6 +244,6 @@ Short version:
 
 Full notes:
 
-- [docs/lessons-learned.md](/home/moha_/projects/air-quality-data-pipeline/docs/lessons-learned.md)
-- [docs/architecture-decisions.md](/home/moha_/projects/air-quality-data-pipeline/docs/architecture-decisions.md)
-- [docs/reviewer-guide.md](/home/moha_/projects/air-quality-data-pipeline/docs/reviewer-guide.md)
+- [docs/lessons-learned.md](/home/moha_/projects/global-city-air-quality-observatory/docs/lessons-learned.md)
+- [docs/architecture-decisions.md](/home/moha_/projects/global-city-air-quality-observatory/docs/architecture-decisions.md)
+- [docs/reviewer-guide.md](/home/moha_/projects/global-city-air-quality-observatory/docs/reviewer-guide.md)

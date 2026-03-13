@@ -1,12 +1,13 @@
 """Airflow DAGs for the five-city end-to-end batch pipeline."""
 
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 
 
-PROJECT_ROOT = "/home/moha_/projects/air-quality-data-pipeline"
+PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 
 default_args = {
     "owner": "global-city-air-quality-observatory",

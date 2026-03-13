@@ -7,7 +7,7 @@ This folder contains two DAG entrypoints:
 
 Both DAGs orchestrate the same end-to-end flow:
 
-`resolve_scope_and_window -> download_raw_archive_files -> store_bronze_files -> run_spark_bronze_to_silver -> run_silver_quality_checks -> load_silver_to_bigquery -> run_dbt_staging -> run_dbt_marts -> run_validation_checks -> finish_pipeline`
+`show_scope -> download_data -> verify_bronze -> bronze_to_silver -> silver_data_quality -> load_bigquery -> dbt_run -> dbt_test -> verify_quality_report`
 
 The only difference is ingestion mode:
 

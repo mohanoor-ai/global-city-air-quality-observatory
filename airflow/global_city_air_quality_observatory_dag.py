@@ -1,4 +1,6 @@
-"""Airflow DAGs for the five-city end-to-end batch pipeline."""
+"""Airflow DAGs for the end-to-end Global City Air Quality Observatory batch flow."""
+
+from __future__ import annotations
 
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -18,17 +20,14 @@ default_args = {
 
 
 def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
-    resolve_scope_and_window = BashOperator(
-        task_id="resolve_scope_and_window",
-        bash_command=(
-            f"cd {PROJECT_ROOT} && "
-            "uv run python main.py show-scope"
-        ),
+    show_scope = BashOperator(
+        task_id="show_scope",
+        bash_command=f"cd {PROJECT_ROOT} && uv run python main.py show-scope",
         dag=dag,
     )
 
-    download_raw_archive_files = BashOperator(
-        task_id="download_raw_archive_files",
+    download_data = BashOperator(
+        task_id="download_data",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
             f"uv run python ingestion/download_air_quality_data.py --mode {ingestion_mode}"
@@ -36,17 +35,14 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
         dag=dag,
     )
 
-    store_bronze_files = BashOperator(
-        task_id="store_bronze_files",
-        bash_command=(
-            f"cd {PROJECT_ROOT} && "
-            "uv run python main.py verify-bronze"
-        ),
+    verify_bronze = BashOperator(
+        task_id="verify_bronze",
+        bash_command=f"cd {PROJECT_ROOT} && uv run python main.py verify-bronze",
         dag=dag,
     )
 
-    run_spark_bronze_to_silver = BashOperator(
-        task_id="run_spark_bronze_to_silver",
+    bronze_to_silver = BashOperator(
+        task_id="bronze_to_silver",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
             "uv run python spark/bronze_to_silver.py "
@@ -55,71 +51,46 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
         dag=dag,
     )
 
-    run_silver_quality_checks = BashOperator(
-        task_id="run_silver_quality_checks",
-        bash_command=(
-            f"cd {PROJECT_ROOT} && "
-            "uv run python spark/check_silver_data_quality.py"
-        ),
+    silver_data_quality = BashOperator(
+        task_id="silver_data_quality",
+        bash_command=f"cd {PROJECT_ROOT} && uv run python spark/check_silver_data_quality.py",
         dag=dag,
     )
 
-    load_warehouse = BashOperator(
-        task_id="load_silver_to_bigquery",
-        bash_command=(
-            f"cd {PROJECT_ROOT} && "
-            "uv run python warehouse/load_to_bigquery.py"
-        ),
+    load_bigquery = BashOperator(
+        task_id="load_bigquery",
+        bash_command=f"cd {PROJECT_ROOT} && uv run python warehouse/load_to_bigquery.py",
         dag=dag,
     )
 
-    run_dbt_staging = BashOperator(
-        task_id="run_dbt_staging",
-        bash_command=(
-            f"cd {PROJECT_ROOT} && "
-            ".venv-dbt/bin/dbt run --project-dir dbt/air_quality_project --select stg_air_quality"
-        ),
+    dbt_run = BashOperator(
+        task_id="dbt_run",
+        bash_command=f"cd {PROJECT_ROOT} && bash scripts/dbt_run.sh",
         dag=dag,
     )
 
-    run_dbt_marts = BashOperator(
-        task_id="run_dbt_marts",
-        bash_command=(
-            f"cd {PROJECT_ROOT} && "
-            "bash scripts/dbt_run.sh"
-        ),
+    dbt_test = BashOperator(
+        task_id="dbt_test",
+        bash_command=f"cd {PROJECT_ROOT} && bash scripts/dbt_test.sh",
         dag=dag,
     )
 
-    run_validation_checks = BashOperator(
-        task_id="run_validation_checks",
-        bash_command=(
-            f"cd {PROJECT_ROOT} && "
-            "bash scripts/dbt_test.sh"
-        ),
-        dag=dag,
-    )
-
-    finish_pipeline = BashOperator(
-        task_id="finish_pipeline",
-        bash_command=(
-            f"cd {PROJECT_ROOT} && "
-            "uv run python main.py verify-quality-report"
-        ),
+    verify_quality_report = BashOperator(
+        task_id="verify_quality_report",
+        bash_command=f"cd {PROJECT_ROOT} && uv run python main.py verify-quality-report",
         dag=dag,
     )
 
     (
-        resolve_scope_and_window
-        >> download_raw_archive_files
-        >> store_bronze_files
-        >> run_spark_bronze_to_silver
-        >> run_silver_quality_checks
-        >> load_warehouse
-        >> run_dbt_staging
-        >> run_dbt_marts
-        >> run_validation_checks
-        >> finish_pipeline
+        show_scope
+        >> download_data
+        >> verify_bronze
+        >> bronze_to_silver
+        >> silver_data_quality
+        >> load_bigquery
+        >> dbt_run
+        >> dbt_test
+        >> verify_quality_report
     )
 
 

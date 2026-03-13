@@ -2,9 +2,10 @@
 
 These are the current project docs worth reading:
 
+- `zero-to-hero-tutorial.md`: full hands-on teaching guide from setup to reviewer evidence
 - `architecture-decisions.md`: short ADR-style tradeoffs
 - `lessons-learned.md`: what changed during the capstone refactor
-- `reviewer-guide.md`: likely viva questions and answers
+- `review-guide.md`: short reviewer-facing summary
 - `pipeline-overview.md`: end-to-end flow from source to dashboard
 - `infrastructure.md`: what Terraform creates and what stays manual
 - `repository-structure.md`: stage boundaries and important folders

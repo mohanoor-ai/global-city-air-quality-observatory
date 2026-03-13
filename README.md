@@ -1,249 +1,156 @@
 # Global City Air Quality Observatory
 
-## Problem statement
+Batch data engineering project comparing air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and São Paulo using GCP, Airflow, Spark, BigQuery, dbt, and Looker Studio.
 
-This project asks a focused analytics question:
+## Problem Statement
+
+Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and São Paulo using OpenAQ, GCS, Spark, BigQuery, dbt, Airflow, and Looker Studio.
+
+The project question is:
 
 How do pollution trends and pollutant patterns differ across five major global cities over time?
 
-It is a batch end-to-end data engineering capstone built for the Data Engineering Zoomcamp project rubric. The repo is intentionally centered on one reviewer-friendly story instead of broad "global air quality" coverage. A reviewer should be able to identify where the data comes from, how it lands in a data lake, how it moves into the warehouse, how it is transformed, how it is visualized, and how someone else can run it.
+This repository is intentionally narrow. It tells one reviewer-friendly story from ingestion to dashboard instead of trying to cover every city in the archive.
 
-## Why these five cities
+## Scope
 
-The fixed city scope is:
+The project scope is fixed to exactly five cities:
 
-- London, United Kingdom
-- New York, United States
-- Delhi, India
-- Beijing, China
-- São Paulo, Brazil
+- London
+- New York
+- Delhi
+- Beijing
+- São Paulo
 
-I narrowed the project to exactly five cities for five reasons:
+These five cities provide geographic spread, strong analytical contrast, workable source coverage, and a capstone-sized scope that is realistic to validate and reproduce.
 
-- global geographic spread across Europe, North America, Asia, and South America
-- clear analytical contrast between lower and higher pollution baselines
-- stronger monitoring availability than a fully open-ended city list
-- a dashboard that stays readable during a capstone demo
-- a manageable scope for backfill, validation, and reproducibility
+The single source of truth for scope is [ingestion/location_targets.csv](ingestion/location_targets.csv).
 
-The city list is locked in [ingestion/location_targets.csv](ingestion/location_targets.csv) and validated by [ingestion/city_scope.py](ingestion/city_scope.py).
+## Architecture
 
-## Architecture diagram
-
-Architecture image: [images/architecture_diagram.svg](images/architecture_diagram.svg)
+Official architecture story:
 
 ```text
-OpenAQ AWS archive
-    -> Python ingestion
-    -> GCS Bronze raw files
-    -> Spark Bronze to Silver standardization
-    -> Silver parquet quality checks
-    -> BigQuery fact and dimension tables
-    -> dbt staging and marts
-    -> Looker Studio dashboard
+OpenAQ source data
+-> Bronze ingestion to Google Cloud Storage
+-> Spark Bronze to Silver transformation
+-> BigQuery warehouse loading
+-> dbt analytical marts
+-> Looker Studio dashboard
 ```
 
-## What this project demonstrates
+Architecture diagram: [images/architecture_diagram.svg](images/architecture_diagram.svg)
 
-- batch ingestion from a public source archive
-- medallion-style lake design with Bronze and Silver layers
-- meaningful Spark use for schema enforcement, timestamp normalization, city filtering, metadata enrichment, and deduplication
-- warehouse loading into partitioned and clustered BigQuery tables
-- dbt models that turn warehouse measurements into dashboard-ready marts
-- Airflow orchestration for both backfill and daily refresh flows
-- Terraform-managed cloud resources on GCP
+The pipeline is batch-first:
 
-## Data source
+- Python downloads OpenAQ archive files for the fixed city scope.
+- Bronze keeps raw files in GCS for traceability.
+- Spark standardizes Bronze data into a Silver parquet dataset.
+- BigQuery stores the warehouse fact and dimension tables.
+- dbt builds analytical marts for the dashboard.
+- Looker Studio presents a five-city comparison dashboard.
 
-The source is the OpenAQ historical archive hosted in AWS Open Data. The ingestion script reads `csv.gz` files from `s3://openaq-data-archive/records/csv.gz/locationid=.../year=.../month=.../`.
+## Tech Stack
 
-Key source details:
+- Cloud platform: GCP
+- Infrastructure as code: Terraform
+- Orchestration: Airflow
+- Ingestion: Python
+- Batch transformation: Spark
+- Data lake: Google Cloud Storage
+- Warehouse: BigQuery
+- Analytical modeling: dbt
+- Dashboard: Looker Studio
+- Environment tooling: `uv`
 
-- format: raw `csv.gz` files
-- ingestion mode: batch only
-- backfill strategy: last two full years plus current year to date
-- daily strategy: latest available file per configured city location
+## Data Flow
 
-Relevant files:
+The pipeline uses the following main components:
 
-- [ingestion/download_air_quality_data.py](ingestion/download_air_quality_data.py)
-- [docs/data-source.md](docs/data-source.md)
+- [ingestion/download_air_quality_data.py](ingestion/download_air_quality_data.py) downloads raw OpenAQ archive files into Bronze.
+- [spark/bronze_to_silver.py](spark/bronze_to_silver.py) standardizes Bronze data into Silver parquet.
+- [spark/check_silver_data_quality.py](spark/check_silver_data_quality.py) validates the Silver dataset and writes a machine-readable quality report.
+- [warehouse/load_to_bigquery.py](warehouse/load_to_bigquery.py) loads Silver outputs into BigQuery.
+- [dbt/air_quality_project/models/staging/stg_air_quality.sql](dbt/air_quality_project/models/staging/stg_air_quality.sql) and the reporting marts turn warehouse tables into dashboard-ready outputs.
+- [airflow/global_city_air_quality_observatory_dag.py](airflow/global_city_air_quality_observatory_dag.py) orchestrates the end-to-end batch flow.
 
-## Data lake ingestion
+## Dashboard Story
 
-Python handles source download and lands minimally changed files in Bronze. Bronze keeps the raw archive layout for traceability. Metadata for the five-city scope is also written into Bronze so the Spark job can enrich measurements with city and country fields.
+The dashboard is a five-city comparison dashboard, not a global ranking dashboard.
 
-Bronze:
+It is organized around four reviewer-friendly views:
 
-- grain: raw source file
-- storage: GCS bucket `bronze/` prefix and local `data/bronze/`
-- change level: minimal
+- pollution trend over time by city
+- pollutant distribution by city
+- cross-city comparison
+- extreme pollution events within the five selected cities
 
-Silver:
+Primary dashboard documentation lives in [dashboards/README.md](dashboards/README.md).
 
-- grain: one row per city, station, timestamp, pollutant measurement
-- storage: partitioned parquet in `silver/air_quality_measurements/`
-- produced by: [spark/bronze_to_silver.py](spark/bronze_to_silver.py)
+## Warehouse Design
 
-Spark handles:
-
-- reading Bronze raw files
-- schema enforcement
-- timestamp parsing and normalization
-- pollutant standardization
-- filtering to the fixed five-city scope
-- metadata enrichment
-- deduplication
-- writing partitioned Silver parquet
-
-## Warehouse loading
-
-The warehouse is BigQuery. The load step uploads the Silver parquet dataset to GCS, loads a staging table, then rebuilds the curated warehouse tables.
-
-Core warehouse tables:
+The warehouse is designed around a central fact table plus supporting dimensions:
 
 - `fct_air_quality_measurements`
 - `dim_city`
 - `dim_pollutant`
 
-Fact table design:
+The fact table is:
 
-- grain: one row per city, station, timestamp, pollutant measurement
-- partitioning: `measurement_date`
-- clustering: `city`, `pollutant`
+- partitioned by `measurement_date`
+- clustered by `city` and `pollutant`
 
-That layout matches the dashboard access pattern:
+That layout matches the dashboard query pattern because users most often filter by date, compare cities, and compare pollutants.
 
-- dashboard users filter by time
-- city comparisons are central to the project question
-- pollutant comparisons are also central
+## Reproducibility
 
-Relevant file:
-
-- [warehouse/load_to_bigquery.py](warehouse/load_to_bigquery.py)
-
-## Transformations
-
-There are two transformation layers.
-
-Spark Silver layer:
-
-- standardizes raw source fields into an analysis-ready measurement table
-- keeps row-level detail
-- performs operational cleanup before warehouse load
-
-dbt layer:
-
-- stages warehouse data in [dbt/air_quality_project/models/staging/stg_air_quality.sql](dbt/air_quality_project/models/staging/stg_air_quality.sql)
-- builds marts for dashboard queries
-
-Main dbt marts:
-
-- `mart_city_pollution_trends`
-  grain: one row per city, pollutant, measurement date
-  purpose: temporal trend analysis across cities
-- `mart_city_pollutant_distribution`
-  grain: one row per city and pollutant
-  purpose: categorical comparison of average and percentile pollutant levels
-- `mart_city_extreme_events`
-  grain: one row per ranked city-pollutant extreme event
-  purpose: inspect spikes and unusual readings
-- `mart_city_comparison_summary`
-  grain: one row per city
-  purpose: scorecard view for cross-city comparison
-- `mart_pm25_city_daily`
-  grain: one row per city and date
-  purpose: feed the main PM2.5 trend chart
-
-## Dashboard
-
-The dashboard is a Looker Studio city comparison dashboard built around the fixed five-city question.
-
-Required tiles:
-
-- pollution trend over time
-  chart: line chart
-  mart: `mart_pm25_city_daily`
-  question answered: how has daily PM2.5 changed by city over time?
-- pollutant distribution by city
-  chart: bar chart or stacked bar chart
-  mart: `mart_city_pollutant_distribution`
-  question answered: which pollutants dominate each city's measurement profile?
-
-Optional supporting tiles:
-
-- extreme pollution events
-  mart: `mart_city_extreme_events`
-- city comparison scorecard
-  mart: `mart_city_comparison_summary`
-
-Dashboard docs and screenshots:
-
-- [dashboards/README.md](dashboards/README.md)
-- [images/dashboard_pm25_trend.png](images/dashboard_pm25_trend.png)
-- [images/dashboard_pollutant_distribution.png](images/dashboard_pollutant_distribution.png)
-
-## How to run
-
-The full setup and execution steps are in [runbook.md](runbook.md).
-
-Short version:
+The fastest end-to-end local workflow is:
 
 ```bash
 uv sync
+uv run python main.py show-scope
 uv run python ingestion/download_air_quality_data.py --mode backfill
+uv run python main.py verify-bronze
 uv run python spark/bronze_to_silver.py --write-mode overwrite
 uv run python spark/check_silver_data_quality.py
 uv run python warehouse/load_to_bigquery.py
 bash scripts/dbt_run.sh
 bash scripts/dbt_test.sh
+uv run python main.py verify-quality-report
 ```
 
-Airflow DAGs:
+Full environment, cloud, and orchestration steps are documented in [runbook.md](runbook.md).
 
-- `global_city_air_quality_backfill`
-- `global_city_air_quality_daily`
+## Lessons Learned
 
-## Tech stack
+Short retrospective notes live in [docs/lessons-learned.md](docs/lessons-learned.md).
 
-- Cloud: GCP
-- Infrastructure as code: Terraform
-- Orchestration: Airflow
-- Ingestion: Python
-- Batch processing: Spark
-- Data lake: GCS Bronze and Silver
-- Warehouse: BigQuery
-- Transformations: Spark and dbt
-- Dashboard: Looker Studio
-- Environment tooling: `uv`
+## Architecture Decisions
 
-## How this project meets the Zoomcamp rubric
+The main tradeoffs are documented in [docs/architecture-decisions.md](docs/architecture-decisions.md).
 
-- Problem description -> this README problem statement and the fixed five-city rationale
-- Cloud -> GCP resources provisioned with Terraform for GCS and BigQuery
-- Data ingestion / orchestration -> Python ingestion plus Airflow DAGs landing Bronze files and orchestrating the full batch pipeline
-- Data warehouse -> BigQuery fact and dimension tables with partitioning and clustering
-- Transformations -> Spark Silver standardization plus dbt staging and marts
-- Dashboard -> Looker Studio dashboard with a temporal trend tile and a categorical distribution tile
-- Reproducibility -> this README, [runbook.md](runbook.md), [.env.example](.env.example), Terraform, and runnable commands
+## Reviewer Guide
+
+A short reviewer-facing guide lives in [docs/review-guide.md](docs/review-guide.md).
+
+## Proof Of Run
+
+Expected proof-of-run artifacts are listed in [docs/execution-evidence.md](docs/execution-evidence.md).
+
+## Reviewer Checklist
+
+Reviewers should be able to confirm that:
+
+- the README and scope file agree on the same five cities
+- Spark is the main Bronze to Silver transformation layer
+- Airflow orchestrates the batch pipeline from scope check through dbt validation
+- BigQuery stores partitioned and clustered warehouse tables
+- dbt produces dashboard-facing marts
+- the dashboard tells a five-city comparison story
 
 ## Limitations
 
-- coverage depends on the chosen OpenAQ locations for each city
-- unit harmonization is limited to the source values already present in the archive
-- the daily pipeline is batch-incremental, not real-time streaming
-- city-level averages can hide station-level differences inside each metro area
-
-## Lessons learned
-
-Short version:
-
-- narrowing the scope made the project easier to explain and validate
-- Spark became worthwhile once the Silver layer needed schema enforcement and repeatable batch transformations across many raw files
-- BigQuery partitioning and clustering mattered because the dashboard always filters by date, city, and pollutant
-
-Full notes:
-
-- [docs/lessons-learned.md](docs/lessons-learned.md)
-- [docs/architecture-decisions.md](docs/architecture-decisions.md)
-- [docs/reviewer-guide.md](docs/reviewer-guide.md)
+- Results depend on the selected OpenAQ locations for each city.
+- The pipeline is scheduled batch processing, not streaming.
+- Source units are preserved from the archive and are not deeply harmonized.
+- City-level rollups can hide within-city station variation.

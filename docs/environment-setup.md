@@ -3,7 +3,7 @@
 ## Required tools
 
 - Git
-- Python 3.14+
+- Python 3.11 to 3.13
 - `uv`
 - Google Cloud SDK (`gcloud`, `bq`)
 - Terraform (only if you want to provision cloud resources)

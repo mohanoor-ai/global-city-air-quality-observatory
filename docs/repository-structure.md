@@ -13,18 +13,18 @@ global-city-air-quality-observatory/
 ├── README.md
 ├── airflow/
 ├── dashboards/
-├── data/
 ├── dbt/
 ├── docs/
 ├── ingestion/
 ├── main.py
 ├── runbook.md
-├── scripts/
 ├── spark/
 ├── terraform/
 ├── tests/
 └── warehouse/
 ```
+
+Supporting helper folders also exist for dbt shell wrappers, SQL validation queries, and architecture images, but they are not presented as the main transformation path.
 
 ## Key Pipeline Files
 

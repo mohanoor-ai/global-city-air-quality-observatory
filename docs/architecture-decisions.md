@@ -1,48 +1,60 @@
 # Architecture Decisions
 
-## ADR-001: Fixed five-city scope
+## ADR-001: Fixed Five-City Scope
 
 Decision:
 
-- keep the project at exactly five cities: London, New York, Delhi, Beijing, and São Paulo
+- keep the project limited to London, New York, Delhi, Beijing, and São Paulo
 
 Why:
 
-- enough geographic spread for comparisons
-- enough contrast to make the dashboard interesting
-- small enough to backfill and explain clearly
+- this avoids an over-broad global analysis story
+- the five-city comparison is easier to validate and explain
+- the dashboard remains readable during review
 
-## ADR-002: Spark replaces Pandas in the Silver layer
+## ADR-002: Batch Architecture
 
 Decision:
 
-- move Bronze to Silver processing from Pandas to Spark
+- use a scheduled batch pipeline rather than streaming
 
 Why:
 
-- the Silver layer now reads many raw archive files, enforces a schema, parses timestamps, standardizes pollutants, enriches metadata, deduplicates rows, and writes partitioned parquet
-- this is substantial enough to justify Spark instead of a notebook-style Pandas script
+- the source is delivered as archive files
+- the project is orchestrated on a schedule
+- batch is a better fit for this capstone than a streaming system
 
-## ADR-003: BigQuery partitioning and clustering
+## ADR-003: Spark Replaces Pandas For Bronze To Silver
 
 Decision:
 
-- partition the fact table by `measurement_date`
+- make Spark the main Bronze to Silver transformation engine
+
+Why:
+
+- the Silver layer requires schema enforcement, timestamp parsing, pollutant standardization, metadata enrichment, deduplication, and parquet output
+- Spark is a better fit for repeatable batch transformation at this stage than a notebook-style Pandas cleanup flow
+
+## ADR-004: BigQuery Table Optimization
+
+Decision:
+
+- partition BigQuery fact tables by `measurement_date`
 - cluster by `city` and `pollutant`
 
 Why:
 
-- dashboard users filter by date first
-- the whole project is built around city comparisons
-- pollutant slicing is common in both marts and dashboard tiles
+- reviewer-facing queries filter by date
+- the project centers on city comparison
+- pollutant slicing is common in marts and dashboard pages
 
-## ADR-004: dbt for marts, not for raw cleanup
+## ADR-005: dbt For Analytical Marts
 
 Decision:
 
-- use Spark for operational cleanup and dbt for analytical marts
+- use dbt for analytical marts rather than raw-data cleaning
 
 Why:
 
-- Spark is better suited to the file-based Bronze to Silver step
-- dbt is better suited to readable warehouse SQL models, tests, and reviewer-facing mart logic
+- Spark is the right place for operational Bronze to Silver standardization
+- dbt is the right place for readable, testable analytical marts

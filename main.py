@@ -1,34 +1,51 @@
-"""Small project CLI used by docs and Airflow helper tasks."""
+"""Small CLI for scope inspection and local pipeline verification steps."""
 
 from __future__ import annotations
 
 from argparse import ArgumentParser, Namespace
+import csv
 from pathlib import Path
 import json
 import sys
 
-from ingestion.city_scope import CITY_SCOPE
 
-
+TARGETS_FILE = Path("ingestion/location_targets.csv")
 BRONZE_DIR = Path("data/bronze")
 QUALITY_REPORT = Path("data/quality/silver_dq_report.json")
-SILVER_SUMMARY = Path("data/silver/latest_run_summary.json")
 
 
 def parse_args() -> Namespace:
     parser = ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("show-scope", help="Print the fixed five-city analytical scope.")
+    subparsers.add_parser("show-scope", help="Print the five-city analytical scope from ingestion/location_targets.csv.")
     subparsers.add_parser("verify-bronze", help="Confirm Bronze files and metadata exist.")
-    subparsers.add_parser("verify-silver", help="Print the latest Spark Silver run summary.")
-    subparsers.add_parser("verify-quality-report", help="Confirm the Silver DQ report passed.")
+    subparsers.add_parser("verify-quality-report", help="Confirm the Silver DQ report exists and passed.")
     return parser.parse_args()
 
 
+def load_scope_rows(targets_file: Path) -> list[dict[str, str]]:
+    with targets_file.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        return [
+            {
+                "location_id": str(row.get("location_id", "")).strip(),
+                "city": str(row.get("city", "")).strip(),
+                "country": str(row.get("country", "")).strip(),
+            }
+            for row in reader
+            if str(row.get("city", "")).strip()
+        ]
+
+
 def show_scope() -> int:
-    print("Fixed city scope:")
-    for item in CITY_SCOPE:
-        print(f"- {item.city}, {item.country}: {item.rationale}")
+    rows = load_scope_rows(TARGETS_FILE)
+    if not rows:
+        print(f"[FAIL] No scope rows found in {TARGETS_FILE}")
+        return 1
+
+    print("Configured five-city scope:")
+    for row in rows:
+        print(f"- {row['city']} ({row['country']}) [location_id={row['location_id']}]")
     return 0
 
 
@@ -46,22 +63,19 @@ def verify_bronze() -> int:
     return 0
 
 
-def verify_silver() -> int:
-    if not SILVER_SUMMARY.exists():
-        print(f"[FAIL] Missing Spark run summary: {SILVER_SUMMARY}")
-        return 1
-    summary = json.loads(SILVER_SUMMARY.read_text(encoding='utf-8'))
-    print(json.dumps(summary, indent=2))
-    return 0
-
-
 def verify_quality_report() -> int:
     if not QUALITY_REPORT.exists():
-        print(f"[FAIL] Missing DQ report: {QUALITY_REPORT}")
+        print(f"[FAIL] Missing quality report: {QUALITY_REPORT}")
         return 1
+
     report = json.loads(QUALITY_REPORT.read_text(encoding="utf-8"))
+    status = str(report.get("status", "")).lower()
     print(json.dumps(report, indent=2))
-    return 0 if report.get("status") == "pass" else 1
+    if status != "pass":
+        print("[FAIL] Silver data quality report is not in pass state.")
+        return 1
+    print("[PASS] Silver data quality report exists and passed.")
+    return 0
 
 
 def main() -> int:
@@ -70,8 +84,6 @@ def main() -> int:
         return show_scope()
     if args.command == "verify-bronze":
         return verify_bronze()
-    if args.command == "verify-silver":
-        return verify_silver()
     if args.command == "verify-quality-report":
         return verify_quality_report()
     raise ValueError(f"Unsupported command: {args.command}")

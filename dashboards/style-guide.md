@@ -1,6 +1,6 @@
 # Dashboard Style Guide
 
-Use a clean, readable layout that supports the PM2.5 story.
+Use a clean, readable layout that supports the five-city comparison story.
 
 ## Colors
 
@@ -20,7 +20,7 @@ Pollutants:
 ## Layout suggestion
 
 1. Top filters: date, pollutant, city
-2. PM2.5 city trend chart
+2. City trend over time chart
 3. Pollutant distribution by city chart
 4. Optional city scorecard
 5. Optional extreme events table

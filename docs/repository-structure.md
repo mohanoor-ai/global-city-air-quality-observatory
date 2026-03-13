@@ -17,7 +17,7 @@ air-quality-data-pipeline/
 ├── dbt/
 ├── docs/
 ├── ingestion/
-├── processing/
+├── spark/
 ├── scripts/
 ├── sql/
 ├── terraform/
@@ -30,8 +30,8 @@ air-quality-data-pipeline/
 ingestion/
   download_air_quality_data.py
 
-processing/
-  clean_air_quality_data.py
+spark/
+  bronze_to_silver.py
   check_silver_data_quality.py   # Data quality checks (quality gate)
 
 sql/

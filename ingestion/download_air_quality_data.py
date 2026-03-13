@@ -17,11 +17,12 @@ import boto3
 from botocore import UNSIGNED
 from botocore.config import Config
 
+from ingestion.city_scope import DEFAULT_TARGETS_FILE, validate_scope_rows
+
 
 BUCKET_NAME = "openaq-data-archive"
 AWS_REGION = "us-east-1"
 BRONZE_DIR = Path("data/bronze")
-DEFAULT_TARGETS_FILE = Path("ingestion/location_targets.csv")
 METADATA_FILE = BRONZE_DIR / "location_metadata.csv"
 
 s3 = boto3.client(
@@ -66,6 +67,7 @@ def load_targets(path: Path) -> list[LocationTarget]:
 
     if not targets:
         raise ValueError(f"{path} has no usable location rows.")
+    validate_scope_rows([(target.city, target.country) for target in targets])
     return targets
 
 

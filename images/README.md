@@ -1,11 +1,16 @@
-# Dashboard Images
+# Evidence Images
 
-Store final dashboard screenshots here.
+Store final reviewer-facing evidence here.
 
-Expected files:
+Recommended files:
 
-- dashboard_global_trend.png
-- dashboard_worst_countries.png
-- dashboard_worst_cities.png
-- dashboard_pollutant_comparison.png
-- dashboard_extreme_events.png
+- `architecture_diagram.png`
+- `airflow_backfill_success.png`
+- `terraform_apply_summary.png`
+- `bigquery_tables.png`
+- `dbt_run_output.png`
+- `spark_job_output.png`
+- `dashboard_pm25_trend.png`
+- `dashboard_pollutant_distribution.png`
+- `dashboard_extreme_events.png`
+- `dashboard_city_scorecard.png`

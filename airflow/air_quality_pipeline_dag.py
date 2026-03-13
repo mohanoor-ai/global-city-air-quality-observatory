@@ -1,10 +1,4 @@
-"""
-Airflow DAGs for the Air Quality batch pipeline.
-
-Two entrypoints are provided:
-- air_quality_backfill_pipeline_dag
-- air_quality_daily_pipeline_dag
-"""
+"""Airflow DAGs for the five-city end-to-end batch pipeline."""
 
 from datetime import datetime, timedelta
 
@@ -15,7 +9,7 @@ from airflow.operators.bash import BashOperator
 PROJECT_ROOT = "/home/moha_/projects/air-quality-data-pipeline"
 
 default_args = {
-    "owner": "air-quality-pipeline",
+    "owner": "global-city-air-quality-observatory",
     "depends_on_past": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
@@ -23,8 +17,17 @@ default_args = {
 
 
 def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
-    ingest = BashOperator(
-        task_id="ingest_bronze",
+    resolve_scope_and_window = BashOperator(
+        task_id="resolve_scope_and_window",
+        bash_command=(
+            f"cd {PROJECT_ROOT} && "
+            "uv run python main.py show-scope"
+        ),
+        dag=dag,
+    )
+
+    download_raw_archive_files = BashOperator(
+        task_id="download_raw_archive_files",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
             f"uv run python ingestion/download_air_quality_data.py --mode {ingestion_mode}"
@@ -32,26 +35,36 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
         dag=dag,
     )
 
-    build_silver = BashOperator(
-        task_id="build_silver",
+    store_bronze_files = BashOperator(
+        task_id="store_bronze_files",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
-            "uv run python processing/clean_air_quality_data.py"
+            "uv run python main.py verify-bronze"
         ),
         dag=dag,
     )
 
-    data_quality_gate = BashOperator(
-        task_id="data_quality_gate",
+    run_spark_bronze_to_silver = BashOperator(
+        task_id="run_spark_bronze_to_silver",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
-            "uv run python processing/check_silver_data_quality.py"
+            "uv run python spark/bronze_to_silver.py "
+            f"--write-mode {'overwrite' if ingestion_mode == 'backfill' else 'append'}"
+        ),
+        dag=dag,
+    )
+
+    run_silver_quality_checks = BashOperator(
+        task_id="run_silver_quality_checks",
+        bash_command=(
+            f"cd {PROJECT_ROOT} && "
+            "uv run python spark/check_silver_data_quality.py"
         ),
         dag=dag,
     )
 
     load_warehouse = BashOperator(
-        task_id="load_warehouse",
+        task_id="load_silver_to_bigquery",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
             "uv run python warehouse/load_to_bigquery.py"
@@ -59,8 +72,17 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
         dag=dag,
     )
 
-    dbt_run = BashOperator(
-        task_id="dbt_run",
+    run_dbt_staging = BashOperator(
+        task_id="run_dbt_staging",
+        bash_command=(
+            f"cd {PROJECT_ROOT} && "
+            ".venv-dbt/bin/dbt run --project-dir dbt/air_quality_project --select stg_air_quality"
+        ),
+        dag=dag,
+    )
+
+    run_dbt_marts = BashOperator(
+        task_id="run_dbt_marts",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
             "bash scripts/dbt_run.sh"
@@ -68,8 +90,8 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
         dag=dag,
     )
 
-    dbt_test = BashOperator(
-        task_id="dbt_test",
+    run_validation_checks = BashOperator(
+        task_id="run_validation_checks",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
             "bash scripts/dbt_test.sh"
@@ -77,11 +99,31 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
         dag=dag,
     )
 
-    ingest >> build_silver >> data_quality_gate >> load_warehouse >> dbt_run >> dbt_test
+    finish_pipeline = BashOperator(
+        task_id="finish_pipeline",
+        bash_command=(
+            f"cd {PROJECT_ROOT} && "
+            "uv run python main.py verify-quality-report"
+        ),
+        dag=dag,
+    )
+
+    (
+        resolve_scope_and_window
+        >> download_raw_archive_files
+        >> store_bronze_files
+        >> run_spark_bronze_to_silver
+        >> run_silver_quality_checks
+        >> load_warehouse
+        >> run_dbt_staging
+        >> run_dbt_marts
+        >> run_validation_checks
+        >> finish_pipeline
+    )
 
 
 backfill_dag = DAG(
-    dag_id="air_quality_backfill_pipeline_dag",
+    dag_id="global_city_air_quality_backfill",
     default_args=default_args,
     start_date=datetime(2026, 3, 9),
     schedule=None,
@@ -90,7 +132,7 @@ backfill_dag = DAG(
 )
 
 daily_dag = DAG(
-    dag_id="air_quality_daily_pipeline_dag",
+    dag_id="global_city_air_quality_daily",
     default_args=default_args,
     start_date=datetime(2026, 3, 9),
     schedule="@daily",

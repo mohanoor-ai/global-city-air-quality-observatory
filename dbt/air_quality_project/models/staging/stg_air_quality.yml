@@ -2,9 +2,18 @@ version: 2
 
 models:
   - name: stg_air_quality
-    description: Standardized staging model for warehouse air quality data.
+    description: Measurement-level staging model for the five-city warehouse fact table.
     columns:
+      - name: city
+        tests:
+          - not_null
+      - name: country
+        tests:
+          - not_null
       - name: measurement_datetime
+        tests:
+          - not_null
+      - name: measurement_date
         tests:
           - not_null
       - name: location_id
@@ -13,18 +22,12 @@ models:
       - name: location_name
         tests:
           - not_null
-      - name: city
-        tests:
-          - not_null
-      - name: country
-        tests:
-          - not_null
       - name: pollutant
         tests:
           - not_null
           - accepted_values:
               arguments:
                 values: ['pm25', 'pm10', 'no2', 'co', 'o3']
-      - name: value
+      - name: measurement_value
         tests:
           - not_null

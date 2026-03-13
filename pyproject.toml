@@ -1,12 +1,13 @@
 [project]
-name = "air-quality-data-pipeline"
+name = "global-city-air-quality-observatory"
 version = "0.1.0"
-description = "Global PM2.5-focused air quality batch pipeline"
+description = "Five-city batch data engineering project for air quality analytics"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.11,<3.14"
 dependencies = [
+    "boto3>=1.39.0",
     "pandas>=3.0.1",
     "pyarrow>=23.0.1",
+    "pyspark>=3.5.5",
     "requests>=2.32.5",
-    "boto3>=1.39.0",
 ]

@@ -1,109 +1,151 @@
-# Pipeline Runbook
-
-This runbook contains the practical command sequence to run the pipeline.
-
----
+# Runbook
 
 ## Prerequisites
 
-- `uv sync` completed
-- Terraform infrastructure already applied
-- GCP authentication completed:
-  - `gcloud auth login`
-  - `gcloud auth application-default login`
+- Python `3.11` to `3.13`
+- Java 17 available for local Spark
+- `uv` installed
+- GCP project, billing, and BigQuery enabled
+- `gcloud`, `bq`, and Terraform installed
+- dbt environment available at `.venv-dbt`
+- Airflow installed in the environment you use for DAG testing
 
----
-
-## End-to-End Batch Run (Manual)
-
-From project root:
-
-```bash
-# 1) Optional source inspection (quick key listing by location/year/month)
-# Use ingestion script logs during backfill to confirm keys are being discovered.
-uv run python ingestion/download_air_quality_data.py --mode backfill
-uv run python processing/clean_air_quality_data.py
-uv run python processing/check_silver_data_quality.py
-uv run python warehouse/load_to_bigquery.py
-```
-
-Optional quick comparison:
-
-```bash
-uv run python scripts/compare_city_pollution.py --city-a "Delhi" --city-b "London"
-```
-
-Daily refresh only:
-
-```bash
-uv run python ingestion/download_air_quality_data.py --mode daily
-uv run python processing/clean_air_quality_data.py
-uv run python processing/check_silver_data_quality.py
-uv run python warehouse/load_to_bigquery.py
-```
-
----
-
-## dbt Models
-
-Use the wrapper scripts:
+GCP auth requirements:
 
 ```bash
 gcloud auth login
 gcloud auth application-default login
+```
+
+## Setup
+
+1. Clone the repo and install dependencies.
+
+```bash
+uv sync
+cp .env.example .env
+```
+
+2. Configure environment variables in `.env`.
+
+Important values:
+
+- `PROJECT_ID`
+- `GCS_BUCKET`
+- `BIGQUERY_DATASET`
+- `JAVA_HOME`
+- `AIRFLOW_HOME`
+
+3. Apply Terraform.
+
+```bash
+cd terraform
+terraform init
+terraform plan -var-file=terraform.tfvars
+terraform apply -var-file=terraform.tfvars
+cd ..
+```
+
+4. Initialize Airflow if needed.
+
+```bash
+airflow db init
+airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@example.com --password admin
+```
+
+## Execution
+
+Run the pipeline stage by stage from the repo root.
+
+1. Ingestion to Bronze
+
+```bash
+uv run python ingestion/download_air_quality_data.py --mode backfill
+```
+
+2. Spark Bronze to Silver
+
+```bash
+uv run python spark/bronze_to_silver.py --write-mode overwrite
+```
+
+3. Silver quality checks
+
+```bash
+uv run python spark/check_silver_data_quality.py
+```
+
+4. Load Silver to BigQuery
+
+```bash
+uv run python warehouse/load_to_bigquery.py
+```
+
+5. Run dbt models and tests
+
+```bash
 bash scripts/dbt_run.sh
 bash scripts/dbt_test.sh
 ```
 
----
+6. Run the daily refresh flow
 
-## Automated Run (Airflow DAG)
-
-DAG file:
-
-`airflow/air_quality_pipeline_dag.py`
-
-Task flow:
-
-`ingest_bronze -> build_silver -> data_quality_gate -> load_warehouse -> dbt_run -> dbt_test`
-
-DAGs:
-
-- `air_quality_backfill_pipeline_dag` (manual trigger)
-- `air_quality_daily_pipeline_dag` (`@daily` schedule)
-
----
-
-## Quick Validation Queries (BigQuery)
-
-```sql
-SELECT COUNT(*) FROM `aq-pipeline-260309-5800.air_quality_dw.air_quality_measurements`;
-SELECT COUNT(*) FROM `aq-pipeline-260309-5800.air_quality_dbt_marts.mart_pm25_by_city`;
-SELECT COUNT(*) FROM `aq-pipeline-260309-5800.air_quality_dbt_marts.mart_pm25_by_country`;
-SELECT COUNT(*) FROM `aq-pipeline-260309-5800.air_quality_dbt_marts.mart_pollution_trends`;
-SELECT COUNT(*) FROM `aq-pipeline-260309-5800.air_quality_dbt_marts.mart_pollutant_distribution`;
-SELECT COUNT(*) FROM `aq-pipeline-260309-5800.air_quality_dbt_marts.mart_extreme_pollution_events`;
+```bash
+uv run python ingestion/download_air_quality_data.py --mode daily
+uv run python spark/bronze_to_silver.py --write-mode append
+uv run python spark/check_silver_data_quality.py
+uv run python warehouse/load_to_bigquery.py
 ```
 
-## Mart Grain Checks (BigQuery)
+7. Run Airflow DAGs
 
-Use these after `dbt run`:
+Backfill DAG: `global_city_air_quality_backfill`
+
+Daily DAG: `global_city_air_quality_daily`
+
+## Validation
+
+Expected local outputs:
+
+- `data/bronze/` raw archive files
+- `data/bronze/location_metadata.csv`
+- `data/silver/air_quality_measurements/`
+- `data/silver/latest_run_summary.json`
+- `data/quality/silver_dq_report.json`
+
+Expected BigQuery tables:
+
+- `air_quality_dw.fct_air_quality_measurements`
+- `air_quality_dw.dim_city`
+- `air_quality_dw.dim_pollutant`
+- dbt marts in schema `marts`
+
+Sample validation SQL:
 
 ```sql
--- mart_pm25_by_country grain: month_start, country
-SELECT month_start, country, COUNT(*) AS row_count
-FROM `aq-pipeline-260309-5800.air_quality_dbt_marts.mart_pm25_by_country`
-GROUP BY month_start, country
-HAVING COUNT(*) > 1;
+SELECT COUNT(*) FROM `your-project.air_quality_dw.fct_air_quality_measurements`;
 
--- mart_pm25_by_city grain: month_start, country, city
-SELECT month_start, country, city, COUNT(*) AS row_count
-FROM `aq-pipeline-260309-5800.air_quality_dbt_marts.mart_pm25_by_city`
-GROUP BY month_start, country, city
-HAVING COUNT(*) > 1;
+SELECT measurement_date, city, pollutant, COUNT(*) AS row_count
+FROM `your-project.air_quality_dw.fct_air_quality_measurements`
+GROUP BY 1, 2, 3
+ORDER BY measurement_date DESC, city, pollutant;
+
+SELECT * FROM `your-project.marts.mart_pm25_city_daily`
+ORDER BY measurement_date DESC, city
+LIMIT 20;
 ```
 
-Saved query files:
+Expected dbt result:
 
-- `sql/warehouse_validation.sql`
-- `sql/mart_validation.sql`
+- `stg_air_quality` builds successfully
+- all marts in `dbt/air_quality_project/models/marts/reporting/` build successfully
+- `dbt test` passes the not-null and accepted-values checks
+
+Expected DAG result:
+
+- each task succeeds from scope resolution through validation
+- screenshots can be stored at [images/airflow_backfill_success.png](/home/moha_/projects/air-quality-data-pipeline/images/airflow_backfill_success.png)
+
+## Dashboard access
+
+Connect Looker Studio to the BigQuery marts dataset and use the tile mapping in [dashboards/README.md](/home/moha_/projects/air-quality-data-pipeline/dashboards/README.md).

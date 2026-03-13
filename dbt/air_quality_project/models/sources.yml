@@ -5,5 +5,9 @@ sources:
     database: aq-pipeline-260309-5800
     schema: air_quality_dw
     tables:
-      - name: air_quality_measurements
-        description: Cleaned air quality measurements loaded from Silver parquet.
+      - name: fct_air_quality_measurements
+        description: Spark-standardized Silver measurements loaded into the warehouse fact table.
+      - name: dim_city
+        description: One row per selected city in the analytical scope.
+      - name: dim_pollutant
+        description: One row per standardized pollutant.

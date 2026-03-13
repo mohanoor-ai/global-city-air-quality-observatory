@@ -1,52 +1,10 @@
 version: 2
 
 models:
-  - name: mart_pm25_by_country
-    description: Monthly PM2.5 averages by country.
+  - name: mart_city_pollution_trends
+    description: Daily city and pollutant trend table used for the temporal dashboard tile.
     columns:
-      - name: month_start
-        tests:
-          - not_null
-      - name: country
-        tests:
-          - not_null
-      - name: avg_pm25
-        tests:
-          - not_null
-
-  - name: mart_pm25_by_city
-    description: Monthly PM2.5 averages by city and country.
-    columns:
-      - name: month_start
-        tests:
-          - not_null
-      - name: country
-        tests:
-          - not_null
-      - name: city
-        tests:
-          - not_null
-      - name: avg_pm25
-        tests:
-          - not_null
-
-  - name: mart_pollution_trends
-    description: Monthly pollution trend by pollutant.
-    columns:
-      - name: month_start
-        tests:
-          - not_null
-      - name: pollutant
-        tests:
-          - not_null
-      - name: avg_value
-        tests:
-          - not_null
-
-  - name: mart_pollutant_distribution
-    description: Pollutant distribution by location.
-    columns:
-      - name: country
+      - name: measurement_date
         tests:
           - not_null
       - name: city
@@ -55,22 +13,49 @@ models:
       - name: pollutant
         tests:
           - not_null
-      - name: measurement_count
+
+  - name: mart_city_pollutant_distribution
+    description: Average and percentile pollutant profile per city for the categorical dashboard tile.
+    columns:
+      - name: city
+        tests:
+          - not_null
+      - name: pollutant
         tests:
           - not_null
 
-  - name: mart_extreme_pollution_events
-    description: Highest measured pollution events ranked per pollutant.
+  - name: mart_city_extreme_events
+    description: Top 10 highest readings per city and pollutant for anomaly review.
     columns:
       - name: measurement_datetime
         tests:
           - not_null
+      - name: city
+        tests:
+          - not_null
       - name: pollutant
         tests:
           - not_null
-      - name: value
+
+  - name: mart_city_comparison_summary
+    description: One-row-per-city scorecard with average pollutant levels and latest coverage date.
+    columns:
+      - name: city
         tests:
           - not_null
-      - name: pollutant_rank
+      - name: avg_pm25
+        tests:
+          - not_null
+
+  - name: mart_pm25_city_daily
+    description: Daily PM2.5 trend table that feeds the main line chart.
+    columns:
+      - name: measurement_date
+        tests:
+          - not_null
+      - name: city
+        tests:
+          - not_null
+      - name: avg_pm25
         tests:
           - not_null

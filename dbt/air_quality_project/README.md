@@ -1,22 +1,13 @@
 # dbt Project
 
-This dbt project builds PM2.5-focused marts from `air_quality_measurements`.
+This dbt project builds dashboard-ready marts from `fct_air_quality_measurements`.
 
-## Models
+Models:
 
-Staging:
+- staging: `stg_air_quality`
+- marts: `mart_city_pollution_trends`, `mart_city_pollutant_distribution`, `mart_city_extreme_events`, `mart_city_comparison_summary`, `mart_pm25_city_daily`
 
-- `stg_air_quality`
-
-Marts:
-
-- `mart_pm25_by_country`
-- `mart_pm25_by_city`
-- `mart_pollution_trends`
-- `mart_pollutant_distribution`
-- `mart_extreme_pollution_events`
-
-## Run
+Run:
 
 ```bash
 gcloud auth login

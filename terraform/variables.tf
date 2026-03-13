@@ -32,8 +32,20 @@ variable "bigquery_location" {
   default     = "EU"
 }
 
-variable "bigquery_table_id" {
-  description = "BigQuery table ID for cleaned air quality measurements"
+variable "fact_table_id" {
+  description = "BigQuery fact table ID for cleaned air quality measurements"
   type        = string
-  default     = "air_quality_measurements"
+  default     = "fct_air_quality_measurements"
+}
+
+variable "city_dim_table_id" {
+  description = "BigQuery dimension table ID for selected cities"
+  type        = string
+  default     = "dim_city"
+}
+
+variable "pollutant_dim_table_id" {
+  description = "BigQuery dimension table ID for standardized pollutants"
+  type        = string
+  default     = "dim_pollutant"
 }

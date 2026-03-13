@@ -1,36 +1,27 @@
 # Pipeline Overview
 
-This project uses a batch ELT flow centered on PM2.5 analysis.
+This project uses a batch ELT flow centered on five-city comparison analytics.
 
 ## Data flow
 
 ```text
 OpenAQ archive (csv.gz)
-  -> ingestion (backfill or daily)
+  -> Python ingestion (backfill or daily)
   -> Bronze files in data/bronze/
-  -> Silver cleaning in processing/clean_air_quality_data.py
-  -> Silver DQ checks in processing/check_silver_data_quality.py
+  -> Spark Silver transform in spark/bronze_to_silver.py
+  -> Silver DQ checks in spark/check_silver_data_quality.py
   -> BigQuery load in warehouse/load_to_bigquery.py
   -> dbt staging + marts
-  -> dashboard queries
+  -> Looker Studio dashboard
 ```
 
 ## Ingestion modes
 
 - Backfill: last 2 full years + current year-to-date
-- Daily: newest available file per location target
-
-## Location coverage
-
-Location scope is controlled by `ingestion/location_targets.csv`.  
-Country and city values in Silver come from this target file metadata.
+- Daily: newest available file per configured city
 
 ## Main outputs
 
-- Curated warehouse table: `air_quality_measurements`
-- Marts:
-  - `mart_pm25_by_country`
-  - `mart_pm25_by_city`
-  - `mart_pollution_trends`
-  - `mart_pollutant_distribution`
-  - `mart_extreme_pollution_events`
+- Warehouse fact: `fct_air_quality_measurements`
+- Dimensions: `dim_city`, `dim_pollutant`
+- Marts: `mart_city_pollution_trends`, `mart_city_pollutant_distribution`, `mart_city_extreme_events`, `mart_city_comparison_summary`, `mart_pm25_city_daily`

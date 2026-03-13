@@ -12,14 +12,14 @@ from pathlib import Path
 import pandas as pd
 
 
-SILVER_DIR = Path("data/silver")
+SILVER_DIR = Path("data/silver/air_quality_measurements")
 
 
-def latest_silver_file() -> Path:
-    files = sorted(SILVER_DIR.glob("*.parquet"), key=lambda p: p.stat().st_mtime)
+def latest_silver_dataset() -> Path:
+    files = sorted(SILVER_DIR.rglob("*.parquet"))
     if not files:
         raise FileNotFoundError(f"No Silver parquet files found in {SILVER_DIR}")
-    return files[-1]
+    return SILVER_DIR
 
 
 def city_stats(df: pd.DataFrame, city: str, pollutant: str) -> dict[str, object]:
@@ -44,8 +44,8 @@ def city_stats(df: pd.DataFrame, city: str, pollutant: str) -> dict[str, object]
         "city": city,
         "pollutant": pollutant,
         "measurement_count": int(len(city_df)),
-        "avg_value": float(city_df["value"].mean()),
-        "max_value": float(city_df["value"].max()),
+        "avg_value": float(city_df["measurement_value"].mean()),
+        "max_value": float(city_df["measurement_value"].max()),
         "date_min": ts.min().isoformat() if not ts.dropna().empty else None,
         "date_max": ts.max().isoformat() if not ts.dropna().empty else None,
     }
@@ -77,18 +77,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--silver-file",
         default="",
-        help="Optional Silver parquet file path. Uses latest file if omitted.",
+        help="Optional Silver parquet dataset path. Uses the latest dataset if omitted.",
     )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    silver_path = Path(args.silver_file) if args.silver_file else latest_silver_file()
+    silver_path = Path(args.silver_file) if args.silver_file else latest_silver_dataset()
     if not silver_path.exists():
-        raise FileNotFoundError(f"Missing Silver file: {silver_path}")
+        raise FileNotFoundError(f"Missing Silver dataset: {silver_path}")
 
-    print(f"[INFO] Using Silver file: {silver_path}")
+    print(f"[INFO] Using Silver dataset: {silver_path}")
     df = pd.read_parquet(silver_path)
 
     stats_a = city_stats(df, args.city_a, args.pollutant)

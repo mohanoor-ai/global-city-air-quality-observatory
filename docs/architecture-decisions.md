@@ -1,53 +1,48 @@
 # Architecture Decisions
 
-This note records the main choices used in the current repo.
-
-## 1) Batch pipeline, not streaming
+## ADR-001: Fixed five-city scope
 
 Decision:
-- Keep the project batch-oriented for simpler operations.
+
+- keep the project at exactly five cities: London, New York, Delhi, Beijing, and São Paulo
 
 Why:
-- The source already provides daily archive files.
-- Backfill and daily incremental runs are enough for the project question.
 
-## 2) OpenAQ AWS archive over API polling
+- enough geographic spread for comparisons
+- enough contrast to make the dashboard interesting
+- small enough to backfill and explain clearly
+
+## ADR-002: Spark replaces Pandas in the Silver layer
 
 Decision:
-- Ingest from `s3://openaq-data-archive` `csv.gz` files.
+
+- move Bronze to Silver processing from Pandas to Spark
 
 Why:
-- File partitions by location/year/month make backfill straightforward.
-- Daily mode can pick the newest file per configured location.
 
-## 3) Simple medallion flow
+- the Silver layer now reads many raw archive files, enforces a schema, parses timestamps, standardizes pollutants, enriches metadata, deduplicates rows, and writes partitioned parquet
+- this is substantial enough to justify Spark instead of a notebook-style Pandas script
+
+## ADR-003: BigQuery partitioning and clustering
 
 Decision:
-- Bronze: raw `csv.gz` files.
-- Silver: cleaned parquet.
-- Gold: dbt marts.
+
+- partition the fact table by `measurement_date`
+- cluster by `city` and `pollutant`
 
 Why:
-- Easy to explain and debug.
-- Uses a clear layered data flow without extra layers.
 
-## 4) PM2.5-first marts with pollutant comparison
+- dashboard users filter by date first
+- the whole project is built around city comparisons
+- pollutant slicing is common in both marts and dashboard tiles
+
+## ADR-004: dbt for marts, not for raw cleanup
 
 Decision:
-- Keep PM2.5 as the main analytical focus.
-- Still include other pollutants for trends/distribution.
+
+- use Spark for operational cleanup and dbt for analytical marts
 
 Why:
-- Matches the project question.
-- Supports both focused and comparative dashboard views.
 
-## 5) Modest orchestration
-
-Decision:
-- Two Airflow entrypoints:
-  - backfill DAG (manual trigger)
-  - daily DAG (`@daily`)
-
-Why:
-- Clear operational split.
-- No advanced scheduling complexity.
+- Spark is better suited to the file-based Bronze to Silver step
+- dbt is better suited to readable warehouse SQL models, tests, and reviewer-facing mart logic

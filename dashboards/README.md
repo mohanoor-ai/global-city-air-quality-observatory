@@ -1,55 +1,41 @@
-# Dashboard Guide (Looker Studio)
+# Dashboard Guide
 
-Connect Looker Studio to dataset `air_quality_dbt_marts` in project `aq-pipeline-260309-5800`.
+Dashboard goal: show how pollution trends and pollutant patterns differ across London, New York, Delhi, Beijing, and São Paulo.
 
-Use these marts:
+## Tile mapping
 
-- `mart_pm25_by_country`
-- `mart_pm25_by_city`
-- `mart_pollution_trends`
-- `mart_pollutant_distribution`
-- `mart_extreme_pollution_events`
+- PM2.5 trend over time
+  chart: line chart
+  mart: `mart_pm25_city_daily`
+  question: how does daily PM2.5 move across the five cities over time?
+  screenshot: [images/dashboard_pm25_trend.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_pm25_trend.png)
 
-## Suggested Dashboard Pages
+- Pollutant distribution by city
+  chart: bar chart or stacked bar chart
+  mart: `mart_city_pollutant_distribution`
+  question: which pollutant profile stands out in each city?
+  screenshot: [images/dashboard_pollutant_distribution.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_pollutant_distribution.png)
 
-1. Global trend
-- Data source: `mart_pollution_trends`
-- Dimension: `month_start`
-- Breakdown: `pollutant`
-- Metric: `avg_value`
+- Extreme pollution events
+  chart: table
+  mart: `mart_city_extreme_events`
+  question: where did the biggest pollutant spikes happen?
+  screenshot: [images/dashboard_extreme_events.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_extreme_events.png)
 
-2. Worst countries
-- Data source: `mart_pm25_by_country`
-- Dimension: `country`
-- Metric: `avg_pm25`
-
-3. Worst cities
-- Data source: `mart_pm25_by_city`
-- Dimensions: `country`, `city`
-- Metric: `avg_pm25`
-
-4. Pollutant comparison
-- Data source: `mart_pollutant_distribution`
-- Dimensions: `pollutant`, `country` or `city`
-- Metrics: `median_value`, `p95_value`, `max_value`
-
-5. Extreme events table
-- Data source: `mart_extreme_pollution_events`
-- Dimensions: `measurement_datetime`, `country`, `city`, `pollutant`
-- Metric: `value`
+- City comparison scorecard
+  chart: scorecards or compact table
+  mart: `mart_city_comparison_summary`
+  question: which city currently looks worst on average PM2.5 and PM10?
+  screenshot: [images/dashboard_city_scorecard.png](/home/moha_/projects/air-quality-data-pipeline/images/dashboard_city_scorecard.png)
 
 ## Filters
 
-- Date filter on `month_start` or `measurement_datetime`
-- Pollutant filter
-- Country / city filters
+- date range on `measurement_date`
+- city
+- pollutant
 
-## Screenshot Evidence
+## Notes for the reviewer
 
-Save dashboard screenshots under `images/` using these names:
-
-- `images/dashboard_global_trend.png`
-- `images/dashboard_worst_countries.png`
-- `images/dashboard_worst_cities.png`
-- `images/dashboard_pollutant_comparison.png`
-- `images/dashboard_extreme_events.png`
+- the first tile satisfies the required temporal chart
+- the second tile satisfies the required categorical chart
+- the dashboard is intentionally small and focused so the five-city story stays clear

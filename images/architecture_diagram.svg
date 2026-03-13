@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360">
+  <style>
+    .box { fill: #f3f0e8; stroke: #2f3b2f; stroke-width: 2; rx: 12; ry: 12; }
+    .label { font: 20px sans-serif; fill: #1f2a1f; }
+    .small { font: 16px sans-serif; fill: #3d4a3d; }
+    .arrow { stroke: #b14d24; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#b14d24"/>
+    </marker>
+  </defs>
+
+  <rect class="box" x="30" y="120" width="150" height="90"/>
+  <text class="label" x="55" y="155">OpenAQ</text>
+  <text class="small" x="55" y="182">AWS archive</text>
+
+  <rect class="box" x="220" y="120" width="170" height="90"/>
+  <text class="label" x="245" y="155">Python</text>
+  <text class="small" x="245" y="182">ingestion</text>
+
+  <rect class="box" x="430" y="120" width="170" height="90"/>
+  <text class="label" x="460" y="155">GCS Bronze</text>
+  <text class="small" x="460" y="182">raw csv.gz</text>
+
+  <rect class="box" x="640" y="120" width="170" height="90"/>
+  <text class="label" x="690" y="155">Spark</text>
+  <text class="small" x="664" y="182">Bronze to Silver</text>
+
+  <rect class="box" x="850" y="120" width="170" height="90"/>
+  <text class="label" x="885" y="155">BigQuery</text>
+  <text class="small" x="882" y="182">fact + dims</text>
+
+  <rect class="box" x="1030" y="120" width="150" height="90"/>
+  <text class="label" x="1072" y="155">dbt</text>
+  <text class="small" x="1052" y="182">marts + tests</text>
+
+  <rect class="box" x="850" y="245" width="170" height="70"/>
+  <text class="label" x="875" y="287">Looker Studio</text>
+
+  <path class="arrow" d="M180 165 L220 165"/>
+  <path class="arrow" d="M390 165 L430 165"/>
+  <path class="arrow" d="M600 165 L640 165"/>
+  <path class="arrow" d="M810 165 L850 165"/>
+  <path class="arrow" d="M1020 165 L1030 165"/>
+  <path class="arrow" d="M1105 210 L1105 245 L1020 245"/>
+</svg>

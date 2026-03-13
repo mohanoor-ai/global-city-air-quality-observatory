@@ -152,8 +152,8 @@ Expected dbt result:
 Expected DAG result:
 
 - each task succeeds from scope resolution through validation
-- screenshots can be stored at [images/airflow_backfill_success.png](/home/moha_/projects/global-city-air-quality-observatory/images/airflow_backfill_success.png)
+- screenshots can be stored at [images/airflow_backfill_success.png](images/airflow_backfill_success.png)
 
 ## Dashboard access
 
-Connect Looker Studio to the BigQuery marts dataset and use the tile mapping in [dashboards/README.md](/home/moha_/projects/global-city-air-quality-observatory/dashboards/README.md).
+Connect Looker Studio to the BigQuery marts dataset and use the tile mapping in [dashboards/README.md](dashboards/README.md).

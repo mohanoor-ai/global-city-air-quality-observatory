@@ -4,12 +4,12 @@ This file is the checklist for proof-of-run artifacts.
 
 Store screenshots or pasted outputs for:
 
-- Airflow DAG success: [images/airflow_backfill_success.png](/home/moha_/projects/global-city-air-quality-observatory/images/airflow_backfill_success.png)
-- BigQuery tables: [images/bigquery_tables.png](/home/moha_/projects/global-city-air-quality-observatory/images/bigquery_tables.png)
-- dbt run and test output: [images/dbt_run_output.png](/home/moha_/projects/global-city-air-quality-observatory/images/dbt_run_output.png)
-- dashboard: [images/dashboard_pm25_trend.png](/home/moha_/projects/global-city-air-quality-observatory/images/dashboard_pm25_trend.png)
-- Terraform apply summary: [images/terraform_apply_summary.png](/home/moha_/projects/global-city-air-quality-observatory/images/terraform_apply_summary.png)
-- Spark job output: [images/spark_job_output.png](/home/moha_/projects/global-city-air-quality-observatory/images/spark_job_output.png)
+- Airflow DAG success: [images/airflow_backfill_success.png](../images/airflow_backfill_success.png)
+- BigQuery tables: [images/bigquery_tables.png](../images/bigquery_tables.png)
+- dbt run and test output: [images/dbt_run_output.png](../images/dbt_run_output.png)
+- dashboard: [images/dashboard_pm25_trend.png](../images/dashboard_pm25_trend.png)
+- Terraform apply summary: [images/terraform_apply_summary.png](../images/terraform_apply_summary.png)
+- Spark job output: [images/spark_job_output.png](../images/spark_job_output.png)
 
 Local validation already available in this repo:
 

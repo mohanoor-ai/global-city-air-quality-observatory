@@ -12,11 +12,9 @@ The goal is to keep the project easy to understand, maintain, and reproduce.
 global-city-air-quality-observatory/
 ├── README.md
 ├── airflow/
-├── dashboards/
 ├── dbt/
 ├── docs/
 ├── ingestion/
-├── legacy_processing/
 ├── main.py
 ├── runbook.md
 ├── spark/
@@ -25,7 +23,7 @@ global-city-air-quality-observatory/
 └── warehouse/
 ```
 
-Supporting helper folders also exist for dbt shell wrappers, SQL validation queries, architecture images, and legacy files, but they are not presented as the main transformation path.
+Supporting helper folders also exist for dbt shell wrappers and SQL validation queries, but they are not presented as the main transformation path. Dashboard notes and architecture images now live under `docs/`.
 
 ## Key Pipeline Files
 

@@ -1,8 +1,12 @@
-# Evidence Images
+# Project Images
 
-Store reviewer-facing screenshots in this folder.
+Store reviewer-facing screenshots and architecture assets in this folder.
 
-Recommended filenames:
+Tracked assets:
+
+- `architecture_diagram.svg`
+
+Recommended evidence filenames:
 
 - `terraform-apply.png`
 - `airflow-success.png`

@@ -43,7 +43,7 @@ OpenAQ source data
 -> Looker Studio dashboard
 ```
 
-Architecture diagram: [images/architecture_diagram.svg](images/architecture_diagram.svg)
+Architecture diagram: [docs/images/architecture_diagram.svg](docs/images/architecture_diagram.svg)
 
 ## Tech stack
 
@@ -117,7 +117,7 @@ It focuses on:
 
 Dashboard documentation:
 
-- [dashboards/README.md](dashboards/README.md)
+- [docs/dashboard-design.md](docs/dashboard-design.md)
 
 ## Reproducibility
 

@@ -3,6 +3,7 @@
 These are the current project docs worth reading:
 
 - `zero-to-hero-tutorial.md`: full hands-on teaching guide from setup to reviewer evidence
+- `dashboard-design.md`: dashboard story and style guide
 - `architecture-decisions.md`: short ADR-style tradeoffs
 - `lessons-learned.md`: what changed during the capstone refactor
 - `review-guide.md`: short reviewer-facing summary

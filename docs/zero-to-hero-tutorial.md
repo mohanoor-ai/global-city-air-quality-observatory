@@ -102,7 +102,7 @@ The main folders you will work with are:
 - [warehouse/](../warehouse/) for BigQuery loading
 - [dbt/](../dbt/) for analytical marts
 - [airflow/](../airflow/) for orchestration
-- [dashboards/](../dashboards/) for dashboard structure
+- [docs/dashboard-design.md](dashboard-design.md) for dashboard structure
 - [docs/](./) for reviewer-facing support docs
 
 The main entry files are:

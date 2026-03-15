@@ -6,7 +6,7 @@ This project compares air pollution trends and pollutant patterns across five ma
 
 ## Why these five cities
 
-The project uses London, New York, Delhi, Beijing, and São Paulo to keep the scope fixed and make cross-city comparison meaningful.
+The project uses London, New York, Delhi, Beijing, and Berlin to keep the scope fixed and make cross-city comparison meaningful.
 
 ## Why batch
 

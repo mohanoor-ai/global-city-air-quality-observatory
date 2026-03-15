@@ -65,14 +65,12 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
 
     dbt_run = BashOperator(
         task_id="dbt_run",
-        bash_command=f"cd {PROJECT_ROOT} && bash scripts/dbt_run.sh",
-        dag=dag,
+        bash_command=f"cd {PROJECT_ROOT} && bash scripts/dbt_run.sh ",
     )
 
     dbt_test = BashOperator(
         task_id="dbt_test",
-        bash_command=f"cd {PROJECT_ROOT} && bash scripts/dbt_test.sh",
-        dag=dag,
+        bash_command=f"cd {PROJECT_ROOT} && bash scripts/dbt_test.sh ",
     )
 
     verify_quality_report = BashOperator(

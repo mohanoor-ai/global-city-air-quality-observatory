@@ -23,15 +23,14 @@ Then one valid `location_id` was selected per city and added to `location_target
 
 ## Current selected locations
 
-- Cairo, EG (`location_id=1621200`)
-- Delhi, IN (`location_id=8118`)
 - London, GB (`location_id=159`)
-- Mexico City, MX (`location_id=3350392`)
-- Buenos Aires, AR (`location_id=2847299`)
-- Sydney, AU (`location_id=2392564`)
+- New York, US (`location_id=2451`)
+- Delhi, IN (`location_id=8118`)
+- Beijing, CN (`location_id=1451`)
+- Berlin, DE (`location_id=3019`)
 
 ## Why this selection
 
-- one major city per inhabited continent
+- fixed five-city comparison with strong policy and pollution contrast
 - keeps ingestion volume manageable
-- supports globally relatable comparisons
+- supports reviewer-friendly comparison across different urban contexts

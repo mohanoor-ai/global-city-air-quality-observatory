@@ -38,14 +38,26 @@ models:
           - not_null
 
   - name: mart_city_comparison_summary
-    description: One-row-per-city scorecard with average pollutant levels and latest coverage date.
+    description: One-row-per-city scorecard with average pollutant levels and latest coverage date. Pollutant-specific averages are nullable when the scoped city location does not provide that pollutant.
     columns:
       - name: city
         tests:
           - not_null
-      - name: avg_pm25
+      - name: country
         tests:
           - not_null
+      - name: latest_measurement_date
+        tests:
+          - not_null
+      - name: measurement_count
+        tests:
+          - not_null
+      - name: avg_pm25
+        description: Average PM2.5 reading for the city when PM2.5 measurements exist in the scoped source data.
+      - name: avg_pm10
+        description: Average PM10 reading for the city when PM10 measurements exist in the scoped source data.
+      - name: avg_no2
+        description: Average NO2 reading for the city when NO2 measurements exist in the scoped source data.
 
   - name: mart_pm25_city_daily
     description: Daily PM2.5 trend table that feeds the main line chart.

@@ -16,6 +16,97 @@ DEFAULT_POLLUTANT_DIM_TABLE = "dim_pollutant"
 DEFAULT_STAGING_TABLE = "silver_air_quality_measurements_staging"
 DEFAULT_LOCATION = "EU"
 SILVER_DIR = Path("data/silver/air_quality_measurements")
+TERRAFORM_TFVARS = Path("terraform/terraform.tfvars")
+
+
+def load_tfvars(path: Path) -> dict[str, str]:
+    """Load simple string assignments from terraform.tfvars without extra dependencies."""
+    if not path.exists():
+        return {}
+
+    values: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and value:
+            values[key] = value
+    return values
+
+
+def build_defaults() -> dict[str, str]:
+    tfvars = load_tfvars(TERRAFORM_TFVARS)
+    return {
+        "project_id": os.getenv("PROJECT_ID", tfvars.get("project_id", DEFAULT_PROJECT_ID)),
+        "bucket": os.getenv("GCS_BUCKET", tfvars.get("gcs_bucket_name", DEFAULT_BUCKET)),
+        "dataset": os.getenv("BIGQUERY_DATASET", tfvars.get("bigquery_dataset_id", DEFAULT_DATASET)),
+        "fact_table": os.getenv("BIGQUERY_FACT_TABLE", DEFAULT_FACT_TABLE),
+        "city_dim_table": os.getenv("BIGQUERY_CITY_DIM_TABLE", DEFAULT_CITY_DIM_TABLE),
+        "pollutant_dim_table": os.getenv("BIGQUERY_POLLUTANT_DIM_TABLE", DEFAULT_POLLUTANT_DIM_TABLE),
+        "staging_table": os.getenv("BIGQUERY_STAGING_TABLE", DEFAULT_STAGING_TABLE),
+        "location": os.getenv("BIGQUERY_LOCATION", tfvars.get("bigquery_location", DEFAULT_LOCATION)),
+    }
+
+
+def validate_resolved_args(args: argparse.Namespace) -> None:
+    placeholder_args = {
+        "--project-id": DEFAULT_PROJECT_ID,
+        "--bucket": DEFAULT_BUCKET,
+    }
+    unresolved = [
+        flag
+        for flag, placeholder in placeholder_args.items()
+        if getattr(args, flag.removeprefix("--").replace("-", "_")) == placeholder
+    ]
+    if unresolved:
+        raise ValueError(
+            "Warehouse loader still has placeholder configuration for "
+            f"{', '.join(unresolved)}. Set environment variables, update terraform/terraform.tfvars, "
+            "or pass explicit CLI arguments."
+        )
+
+
+def build_gcloud_env() -> dict[str, str]:
+    env = os.environ.copy()
+    if "CLOUDSDK_CONFIG" not in env and Path("/tmp/gcloud").exists():
+        env["CLOUDSDK_CONFIG"] = "/tmp/gcloud"
+    return env
+
+
+def require_active_gcloud_account(env: dict[str, str]) -> None:
+    result = subprocess.run(
+        [
+            "gcloud",
+            "auth",
+            "list",
+            "--filter=status:ACTIVE",
+            "--format=value(account)",
+        ],
+        check=False,
+        text=True,
+        capture_output=True,
+        env=env,
+    )
+    if result.returncode != 0:
+        stderr = result.stderr.strip()
+        raise RuntimeError(stderr or "Unable to inspect active gcloud account.")
+    if not result.stdout.strip():
+        config_dir = env.get("CLOUDSDK_CONFIG", "")
+        if config_dir:
+            raise RuntimeError(
+                "No active gcloud account selected for "
+                f"CLOUDSDK_CONFIG={config_dir}. Run "
+                f"`CLOUDSDK_CONFIG={config_dir} gcloud auth login` and "
+                f"`CLOUDSDK_CONFIG={config_dir} gcloud config set project <project-id>` "
+                "before loading BigQuery."
+            )
+        raise RuntimeError(
+            "No active gcloud account selected. Run `gcloud auth login` "
+            "and `gcloud config set project <project-id>` before loading BigQuery."
+        )
 
 
 def run(cmd: list[str], env: dict[str, str] | None = None) -> str:
@@ -38,6 +129,20 @@ def silver_dataset_path() -> Path:
     if not files:
         raise FileNotFoundError(f"No Silver parquet files found in {SILVER_DIR}")
     return SILVER_DIR
+
+
+def build_gcs_source_uris(silver_dir: Path, gcs_prefix: str) -> str:
+    """Build a comma-separated list of exact partition URIs for bq load."""
+    partition_dirs = sorted(
+        {
+            parquet_file.parent.relative_to(silver_dir).as_posix()
+            for parquet_file in silver_dir.rglob("*.parquet")
+        }
+    )
+    if not partition_dirs:
+        raise FileNotFoundError(f"No Silver parquet files found in {silver_dir}")
+    uris = [f"{gcs_prefix}/{partition_dir}/*.parquet" for partition_dir in partition_dirs]
+    return ",".join(uris)
 
 
 def row_count(
@@ -67,25 +172,26 @@ def row_count(
 
 
 def main() -> int:
+    defaults = build_defaults()
     parser = argparse.ArgumentParser()
-    parser.add_argument("--project-id", default=DEFAULT_PROJECT_ID)
-    parser.add_argument("--bucket", default=DEFAULT_BUCKET)
-    parser.add_argument("--dataset", default=DEFAULT_DATASET)
-    parser.add_argument("--fact-table", default=DEFAULT_FACT_TABLE)
-    parser.add_argument("--city-dim-table", default=DEFAULT_CITY_DIM_TABLE)
-    parser.add_argument("--pollutant-dim-table", default=DEFAULT_POLLUTANT_DIM_TABLE)
-    parser.add_argument("--staging-table", default=DEFAULT_STAGING_TABLE)
-    parser.add_argument("--location", default=DEFAULT_LOCATION)
+    parser.add_argument("--project-id", default=defaults["project_id"])
+    parser.add_argument("--bucket", default=defaults["bucket"])
+    parser.add_argument("--dataset", default=defaults["dataset"])
+    parser.add_argument("--fact-table", default=defaults["fact_table"])
+    parser.add_argument("--city-dim-table", default=defaults["city_dim_table"])
+    parser.add_argument("--pollutant-dim-table", default=defaults["pollutant_dim_table"])
+    parser.add_argument("--staging-table", default=defaults["staging_table"])
+    parser.add_argument("--location", default=defaults["location"])
     args = parser.parse_args()
+    validate_resolved_args(args)
 
-    # Reuse the same gcloud config directory set up in this project.
-    env = os.environ.copy()
-    env.setdefault("CLOUDSDK_CONFIG", "/tmp/gcloud")
+    env = build_gcloud_env()
 
     try:
+        require_active_gcloud_account(env)
         silver_dir = silver_dataset_path()
         gcs_prefix = f"gs://{args.bucket}/silver/air_quality_measurements"
-        gcs_uri = f"{gcs_prefix}/batch_date=*/*.parquet"
+        gcs_uri = build_gcs_source_uris(silver_dir, gcs_prefix)
         target_fq = f"{args.project_id}.{args.dataset}.{args.fact_table}"
         staging_fq = f"{args.project_id}.{args.dataset}.{args.staging_table}"
         staging_ref = f"{args.dataset}.{args.staging_table}"
@@ -94,6 +200,7 @@ def main() -> int:
 
         print(f"[INFO] Using Silver dataset: {silver_dir}")
         print(f"[INFO] Upload target: {gcs_prefix}")
+        print(f"[INFO] BigQuery load source: {gcs_uri}")
 
         run(["gcloud", "storage", "cp", "--recursive", str(silver_dir), gcs_prefix], env=env)
 
@@ -106,6 +213,8 @@ def main() -> int:
                 "--replace",
                 "--source_format=PARQUET",
                 "--autodetect",
+                "--hive_partitioning_mode=AUTO",
+                f"--hive_partitioning_source_uri_prefix={gcs_prefix}",
                 staging_ref,
                 gcs_uri,
             ],

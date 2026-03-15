@@ -19,7 +19,7 @@ Required columns:
 
 The script writes `data/bronze/location_metadata.csv` from this file so downstream processing can preserve city and country fields.
 
-Current starter scope is global (one city per inhabited continent) to keep the project lightweight while still comparable across regions.
+Current starter scope is a fixed cross-region comparison chosen to keep the project lightweight while still comparable across different urban contexts.
 
 ## Commands
 

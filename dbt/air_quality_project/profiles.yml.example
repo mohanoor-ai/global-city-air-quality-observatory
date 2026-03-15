@@ -4,9 +4,9 @@ air_quality_project:
     dev:
       type: bigquery
       method: oauth
-      project: your-gcp-project-id
-      dataset: air_quality_dbt
-      location: EU
+      project: "{{ env_var('PROJECT_ID', 'your-gcp-project-id') }}"
+      dataset: "{{ env_var('DBT_DATASET', 'air_quality_dbt') }}"
+      location: "{{ env_var('BIGQUERY_LOCATION', 'EU') }}"
       threads: 4
       job_execution_timeout_seconds: 300
       job_retries: 1

@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pandas as pd
 
+import main as project_cli
 from ingestion import city_scope
 from ingestion import download_air_quality_data as ingest
 from spark import bronze_to_silver as spark_transform
@@ -23,7 +24,7 @@ class TestSparkHelpers(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             targets_file = Path(tmp) / "location_targets.csv"
             targets_file.write_text(
-                "location_id,city,country\n159,London,GB\n2451,New York,US\n8118,Delhi,IN\n1451,Beijing,CN\n347810,São Paulo,BR\n",
+                "location_id,city,country\n159,London,GB\n2451,New York,US\n8118,Delhi,IN\n1451,Beijing,CN\n3019,Berlin,DE\n",
                 encoding="utf-8",
             )
 
@@ -100,17 +101,17 @@ class TestDataQuality(unittest.TestCase):
                         "source_file": "sample.csv.gz",
                     },
                     {
-                        "city": "São Paulo",
-                        "country": "BR",
-                        "location_id": 347810,
-                        "location_name": "Sao Paulo Station",
+                        "city": "Berlin",
+                        "country": "DE",
+                        "location_id": 3019,
+                        "location_name": "Berlin Station",
                         "pollutant": "o3",
                         "measurement_value": 9.0,
                         "measurement_unit": "ug/m3",
                         "measurement_datetime": "2020-01-01T00:00:00+00:00",
                         "measurement_date": "2020-01-01",
-                        "latitude": -23.5,
-                        "longitude": -46.6,
+                        "latitude": 52.52,
+                        "longitude": 13.405,
                         "source_file": "sample.csv.gz",
                     },
                 ]
@@ -142,7 +143,7 @@ class TestIngestion(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             targets_file = Path(tmp) / "location_targets.csv"
             targets_file.write_text(
-                "location_id,city,country\n159,London,GB\n2451,New York,US\n8118,Delhi,IN\n1451,Beijing,CN\n347810,São Paulo,BR\n",
+                "location_id,city,country\n159,London,GB\n2451,New York,US\n8118,Delhi,IN\n1451,Beijing,CN\n3019,Berlin,DE\n",
                 encoding="utf-8",
             )
 
@@ -150,7 +151,23 @@ class TestIngestion(unittest.TestCase):
 
             self.assertEqual(len(targets), 5)
             self.assertEqual(targets[0].location_id, "159")
-            self.assertEqual(targets[-1].city, "São Paulo")
+            self.assertEqual(targets[-1].city, "Berlin")
+
+    def test_load_scope_metadata_rejects_stale_bronze_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            targets_file = Path(tmp) / "location_targets.csv"
+            metadata_file = Path(tmp) / "location_metadata.csv"
+            targets_file.write_text(
+                "location_id,city,country\n159,London,GB\n2451,New York,US\n8118,Delhi,IN\n1451,Beijing,CN\n3019,Berlin,DE\n",
+                encoding="utf-8",
+            )
+            metadata_file.write_text(
+                "location_id,city,country\n159,London,GB\n2451,New York,US\n8118,Delhi,IN\n1451,Beijing,CN\n9999,Berlin,DE\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(ValueError):
+                spark_transform.load_scope_metadata(metadata_file, targets_file)
 
     def test_backfill_months_last_two_full_years_plus_ytd(self) -> None:
         now = datetime(2026, 3, 10, tzinfo=UTC)
@@ -163,6 +180,34 @@ class TestIngestion(unittest.TestCase):
     def test_city_scope_validation_requires_exact_five_city_list(self) -> None:
         with self.assertRaises(ValueError):
             city_scope.validate_scope_rows([("London", "GB")])
+
+
+class TestProjectCli(unittest.TestCase):
+    def test_verify_bronze_fails_when_a_configured_location_has_no_raw_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            targets_file = Path(tmp) / "location_targets.csv"
+            bronze_dir = Path(tmp) / "bronze"
+            metadata_file = bronze_dir / "location_metadata.csv"
+            location_dir = bronze_dir / "records" / "csv.gz" / "locationid=159" / "year=2026" / "month=03"
+            scope_csv = (
+                "location_id,city,country\n"
+                "159,London,GB\n"
+                "2451,New York,US\n"
+                "8118,Delhi,IN\n"
+                "1451,Beijing,CN\n"
+                "3019,Berlin,DE\n"
+            )
+
+            targets_file.write_text(scope_csv, encoding="utf-8")
+            metadata_file.parent.mkdir(parents=True, exist_ok=True)
+            metadata_file.write_text(scope_csv, encoding="utf-8")
+            location_dir.mkdir(parents=True, exist_ok=True)
+            (location_dir / "location-159-20260301.csv.gz").write_text("sample", encoding="utf-8")
+
+            with patch.object(project_cli, "TARGETS_FILE", targets_file), patch.object(project_cli, "BRONZE_DIR", bronze_dir):
+                exit_code = project_cli.verify_bronze()
+
+            self.assertEqual(exit_code, 1)
 
 
 class TestCityComparisonScript(unittest.TestCase):

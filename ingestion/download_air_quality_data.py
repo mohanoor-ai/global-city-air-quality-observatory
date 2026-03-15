@@ -12,10 +12,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 import argparse
 import csv
+import sys
 
 import boto3
 from botocore import UNSIGNED
 from botocore.config import Config
+
+# Support `python ingestion/download_air_quality_data.py ...` from the repo root.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from ingestion.city_scope import DEFAULT_TARGETS_FILE, validate_scope_rows
 
@@ -128,19 +134,47 @@ def run_backfill(targets: list[LocationTarget], overwrite: bool) -> tuple[int, i
     periods = backfill_months(now)
     scanned = 0
     downloaded = 0
+    total_targets = len(targets)
+    total_periods = len(periods)
 
-    for target in targets:
+    print(
+        f"[INFO] Starting backfill for {total_targets} locations "
+        f"across {total_periods} monthly partitions."
+    )
+
+    for target_index, target in enumerate(targets, start=1):
+        target_scanned = 0
+        target_downloaded = 0
+        print(
+            f"[INFO] Target {target_index}/{total_targets}: "
+            f"{target.city} ({target.country}) [location_id={target.location_id}]"
+        )
+
         for year, month in periods:
             prefix = (
                 f"records/csv.gz/locationid={target.location_id}/"
                 f"year={year}/month={month:02d}/"
             )
             keys = list_keys(prefix)
+            month_downloaded = 0
             scanned += len(keys)
+            target_scanned += len(keys)
             for key in keys:
                 did_download = download_key(key, overwrite=overwrite)
                 if did_download:
                     downloaded += 1
+                    target_downloaded += 1
+                    month_downloaded += 1
+
+            print(
+                f"[INFO]   {year}-{month:02d}: scanned {len(keys)} files, "
+                f"downloaded {month_downloaded}"
+            )
+
+        print(
+            f"[INFO] Completed {target.city}: scanned {target_scanned} files, "
+            f"downloaded {target_downloaded}"
+        )
 
     return scanned, downloaded
 

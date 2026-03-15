@@ -5,14 +5,25 @@ Store reviewer-facing screenshots and architecture assets in this folder.
 Tracked assets:
 
 - `architecture_diagram.svg`
+- `airflow_dag_graph.png`
+- `airflow_success_run.png`
+- `bronze_ingestion_success.png`
+- `silver_quality_report.png`
+- `load_to_bigquery.png`
+- `bigquery_tables.png`
+- `dbt_run_output.png`
+- `dbt_test_output.png`
+- `dashboard_overview.png`
+- `Global_City_Air_Quality_Observatory_Dashboard.pdf`
 
 Recommended evidence filenames:
 
-- `terraform-apply.png`
-- `airflow-success.png`
-- `gcs-bronze-files.png`
-- `silver-parquet-output.png`
-- `bigquery-tables.png`
-- `dbt-run.png`
-- `dbt-test.png`
-- `dashboard.png`
+- `airflow_dag_graph.png`
+- `airflow_success_run.png`
+- `bronze_ingestion_success.png`
+- `silver_quality_report.png`
+- `load_to_bigquery.png`
+- `bigquery_tables.png`
+- `dbt_run_output.png`
+- `dbt_test_output.png`
+- `dashboard_overview.png`

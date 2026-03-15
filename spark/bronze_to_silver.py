@@ -6,6 +6,7 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 import csv
 import json
+import os
 import sys
 
 try:
@@ -18,7 +19,12 @@ except ModuleNotFoundError:  # pragma: no cover - handled at runtime in main
     F = None  # type: ignore[assignment]
     T = None  # type: ignore[assignment]
 
-from ingestion.city_scope import DEFAULT_TARGETS_FILE, scope_names
+# Support `python spark/bronze_to_silver.py ...` from the repo root.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from ingestion.city_scope import DEFAULT_TARGETS_FILE, scope_names, validate_scope_rows
 
 
 BRONZE_DIR = Path("data/bronze")
@@ -43,8 +49,7 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 
-def load_scope_metadata(metadata_path: Path, targets_file: Path) -> list[dict[str, str]]:
-    path = metadata_path if metadata_path.exists() else targets_file
+def load_scope_rows(path: Path) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -65,11 +70,45 @@ def load_scope_metadata(metadata_path: Path, targets_file: Path) -> list[dict[st
     return rows
 
 
+def scope_signature(rows: list[dict[str, str]]) -> set[tuple[str, str, str]]:
+    return {
+        (
+            row["location_id"],
+            row["city"].casefold(),
+            row["country"].upper(),
+        )
+        for row in rows
+    }
+
+
+def load_scope_metadata(metadata_path: Path, targets_file: Path) -> list[dict[str, str]]:
+    target_rows = load_scope_rows(targets_file)
+    validate_scope_rows([(row["city"], row["country"]) for row in target_rows])
+
+    if not metadata_path.exists():
+        return target_rows
+
+    metadata_rows = load_scope_rows(metadata_path)
+    if scope_signature(metadata_rows) != scope_signature(target_rows):
+        raise ValueError(
+            f"Bronze metadata scope in {metadata_path} does not match {targets_file}. "
+            "Rerun ingestion/download_air_quality_data.py to refresh Bronze metadata."
+        )
+    return metadata_rows
+
+
 def build_spark() -> SparkSession:
     if SparkSession is None:
         raise ModuleNotFoundError(
             "pyspark is not installed. Run `uv sync` before executing Spark transformations."
         )
+    # Prefer the repo's own PySpark runtime over any ambient Jupyter or system Spark config.
+    os.environ.pop("PYSPARK_DRIVER_PYTHON", None)
+    os.environ.pop("PYSPARK_DRIVER_PYTHON_OPTS", None)
+    os.environ.pop("PYSPARK_SUBMIT_ARGS", None)
+    os.environ.pop("SPARK_HOME", None)
+    os.environ["PYSPARK_PYTHON"] = sys.executable
+
     return (
         SparkSession.builder.appName("global-city-air-quality-observatory")
         .config("spark.sql.session.timeZone", "UTC")

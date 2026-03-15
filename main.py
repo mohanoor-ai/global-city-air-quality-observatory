@@ -8,6 +8,8 @@ from pathlib import Path
 import json
 import sys
 
+from ingestion.city_scope import validate_scope_rows
+
 
 TARGETS_FILE = Path("ingestion/location_targets.csv")
 BRONZE_DIR = Path("data/bronze")
@@ -37,6 +39,21 @@ def load_scope_rows(targets_file: Path) -> list[dict[str, str]]:
         ]
 
 
+def scope_signature(rows: list[dict[str, str]]) -> set[tuple[str, str, str]]:
+    return {
+        (
+            row["location_id"],
+            row["city"].casefold(),
+            row["country"].upper(),
+        )
+        for row in rows
+    }
+
+
+def bronze_location_dir(location_id: str) -> Path:
+    return BRONZE_DIR / "records" / "csv.gz" / f"locationid={location_id}"
+
+
 def show_scope() -> int:
     rows = load_scope_rows(TARGETS_FILE)
     if not rows:
@@ -57,6 +74,33 @@ def verify_bronze() -> int:
         return 1
     if not metadata_file.exists():
         print(f"[FAIL] Missing Bronze metadata file: {metadata_file}")
+        return 1
+    target_rows = load_scope_rows(TARGETS_FILE)
+    metadata_rows = load_scope_rows(metadata_file)
+    try:
+        validate_scope_rows([(row["city"], row["country"]) for row in target_rows])
+    except ValueError as exc:
+        print(f"[FAIL] {exc}")
+        return 1
+    if scope_signature(metadata_rows) != scope_signature(target_rows):
+        print(
+            f"[FAIL] Bronze metadata file {metadata_file} does not match {TARGETS_FILE}. "
+            "Rerun ingestion/download_air_quality_data.py to refresh Bronze metadata."
+        )
+        return 1
+    missing_locations = [
+        f"{row['city']} ({row['country']}) [location_id={row['location_id']}]"
+        for row in target_rows
+        if not any(bronze_location_dir(row["location_id"]).rglob("*.csv.gz"))
+    ]
+    if missing_locations:
+        print("[FAIL] Bronze data is missing files for one or more configured locations:")
+        for item in missing_locations:
+            print(f"- {item}")
+        print(
+            "[INFO] Rerun ingestion/download_air_quality_data.py to refresh Bronze data "
+            "for the current configured scope."
+        )
         return 1
     print(f"[PASS] Bronze files present: {len(bronze_files)}")
     print(f"[INFO] Metadata file: {metadata_file}")

@@ -1,10 +1,30 @@
 # Global City Air Quality Observatory
 
-Batch data engineering project comparing air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and São Paulo using GCP, Airflow, Spark, BigQuery, dbt, and Looker Studio.
+Batch data engineering project comparing air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and Berlin using GCP, Airflow, Spark, BigQuery, dbt, and Looker Studio.
+
+## Quick links
+
+- Architecture diagram: `docs/images/architecture_diagram.svg`
+- Runbook: `runbook.md`
+- Reviewer guide: `docs/review-guide.md`
+- Proof of run: `docs/execution-evidence.md`
+- Dashboard documentation: `docs/dashboard-design.md`
+- Live dashboard: `<PASTE_YOUR_LOOKER_STUDIO_LINK_HERE>`
 
 ## Problem statement
 
-How do pollution trends and pollutant patterns differ across five major global cities over time?
+This project answers a focused analytics question:
+
+**How do pollution trends and pollutant patterns differ across five major global cities over time?**
+
+It is designed as an end-to-end batch data engineering project that clearly shows:
+
+1. where the data comes from
+2. how it lands in the data lake
+3. how it moves into the warehouse
+4. how it is transformed
+5. how it is visualized
+6. how someone else can run it
 
 This project compares:
 
@@ -12,15 +32,17 @@ This project compares:
 - New York
 - Delhi
 - Beijing
-- São Paulo
+- Berlin
 
-## Why this project
+## Why these five cities
 
 Air pollution is a meaningful cross-city comparison problem because the same pollutants can behave differently across places, seasons, and monitoring environments.
 
 This project uses a fixed five-city scope to stay focused, reviewer-friendly, and reproducible. The goal is not global ranking. The goal is a consistent five-city comparison built as an end-to-end batch data engineering project.
 
-## Scope
+## Data source and scope
+
+The dataset comes from OpenAQ archive/source data and is intentionally restricted to a fixed five-city comparison for consistency and reproducibility.
 
 This project is intentionally limited to these five cities only:
 
@@ -28,9 +50,9 @@ This project is intentionally limited to these five cities only:
 - New York
 - Delhi
 - Beijing
-- São Paulo
+- Berlin
 
-The single source of truth for project scope is [ingestion/location_targets.csv](ingestion/location_targets.csv).
+The single source of truth for project scope is `ingestion/location_targets.csv`.
 
 ## Architecture
 
@@ -45,7 +67,9 @@ OpenAQ source data
 
 Architecture diagram: [docs/images/architecture_diagram.svg](docs/images/architecture_diagram.svg)
 
-## Tech stack
+## What this project demonstrates
+
+This repository demonstrates a complete batch analytics pipeline using the following tools and platforms:
 
 - Google Cloud Platform
 - Terraform
@@ -57,15 +81,27 @@ Architecture diagram: [docs/images/architecture_diagram.svg](docs/images/archite
 - Looker Studio
 - uv
 
-## Pipeline steps
+## Repository structure
 
-1. download raw OpenAQ archive data for the five configured cities
-2. store raw files in Bronze
-3. transform raw data to Silver using Spark
-4. run Silver data quality checks
-5. load curated warehouse data into BigQuery
-6. build reporting marts with dbt
-7. visualize five-city outputs in Looker Studio
+- `ingestion/` - source download, city scope, Bronze landing
+- `spark/` - Bronze to Silver transformation and Silver quality checks
+- `warehouse/` - BigQuery load logic
+- `dbt/` - staging models and analytical marts
+- `airflow/` - orchestration DAGs for backfill and daily runs
+- `terraform/` - GCP infrastructure as code
+- `docs/` - reviewer guide, architecture decisions, execution evidence, dashboard design
+- `tests/` - validation checks
+- `scripts/` - helper scripts for dbt execution and local Airflow startup
+
+## End-to-end pipeline flow
+
+1. Download raw OpenAQ archive data for the five configured cities
+2. Land raw files in the Bronze layer
+3. Transform Bronze data into Silver parquet datasets using Spark
+4. Run Silver data quality checks
+5. Load curated warehouse data into BigQuery
+6. Build reporting marts with dbt
+7. Visualize five-city insights in Looker Studio
 
 Main execution files:
 
@@ -80,24 +116,30 @@ Spark is the official Bronze to Silver transformation engine in this repository.
 
 ## Airflow orchestration
 
-The repo contains Airflow DAGs for:
+The repository contains Airflow DAGs for:
 
 - backfill runs
 - daily runs
 
-The DAG task flow is:
+For local DAG runs, Airflow should be installed in a dedicated environment. It is not installed by `uv sync` for the main project environment.
 
-- show_scope
-- download_data
-- verify_bronze
-- bronze_to_silver
-- silver_data_quality
-- load_bigquery
-- dbt_run
-- dbt_test
-- verify_quality_report
+The exact DAG task flow is:
 
-## Warehouse design
+- `show_scope`
+- `download_data`
+- `verify_bronze`
+- `bronze_to_silver`
+- `silver_data_quality`
+- `load_bigquery`
+- `dbt_run`
+- `dbt_test`
+- `verify_quality_report`
+
+This keeps the orchestration easy to review from source download through warehouse loading, dbt transformation, and final validation.
+
+## Warehouse loading and modeling
+
+The warehouse layer is implemented in BigQuery and is designed for analytical querying and dashboard use.
 
 - the fact table is partitioned by date using `measurement_date`
 - the fact table is clustered by `city` and `pollutant`
@@ -106,7 +148,13 @@ The DAG task flow is:
 
 ## Dashboard story
 
-The dashboard is a five-city comparison dashboard.
+The dashboard is a focused five-city comparison dashboard for:
+
+- London
+- New York
+- Delhi
+- Beijing
+- Berlin
 
 It focuses on:
 
@@ -115,26 +163,52 @@ It focuses on:
 - cross-city comparison
 - extreme pollution events within the five selected cities
 
-Dashboard documentation:
+Dashboard resources:
 
-- [docs/dashboard-design.md](docs/dashboard-design.md)
+- Documentation: `docs/dashboard-design.md`
+- Live dashboard: `<PASTE_YOUR_LOOKER_STUDIO_LINK_HERE>`
+- Evidence screenshots: `docs/execution-evidence.md`
 
-## Reproducibility
+## How to run from zero
 
-For a learner-friendly end-to-end run:
+### Prerequisites
 
-1. install dependencies with `uv`
-2. configure environment variables and cloud credentials
-3. provision infrastructure with Terraform
-4. start Airflow
-5. trigger the DAG
-6. run dbt if needed
-7. inspect BigQuery and dashboard outputs
+- Python
+- Java
+- `uv`
+- Google Cloud credentials
+- Terraform
+- dedicated Airflow environment for local DAG runs
+- dbt environment
 
-Useful commands:
+### Setup
 
 ```bash
 uv sync
+```
+
+Configure environment variables and Google Cloud credentials, then provision infrastructure.
+
+If you want to run Airflow locally, install it separately and use the helper script:
+
+```bash
+uv venv .venv-airflow --python 3.11
+source .venv-airflow/bin/activate
+uv pip install apache-airflow
+bash scripts/airflow_standalone.sh
+```
+
+```bash
+cd terraform
+terraform init
+terraform plan -var-file=terraform.tfvars
+terraform apply -var-file=terraform.tfvars
+cd ..
+```
+
+### Manual pipeline run
+
+```bash
 uv run python main.py show-scope
 uv run python ingestion/download_air_quality_data.py --mode backfill
 uv run python main.py verify-bronze
@@ -146,7 +220,48 @@ bash scripts/dbt_test.sh
 uv run python main.py verify-quality-report
 ```
 
-Full setup and runnable details live in [runbook.md](runbook.md).
+### Full run instructions
+
+See `runbook.md` for setup details, Airflow startup, DAG execution, and validation steps.
+
+## Expected outputs
+
+Successful runs should produce:
+
+### Local outputs
+
+- Bronze raw files
+- Silver parquet datasets
+- Silver run summary
+- Silver data quality report
+
+### Warehouse outputs
+
+- curated BigQuery fact table
+- supporting BigQuery dimensions
+- dbt reporting marts
+
+### Reviewer-facing outputs
+
+- Airflow DAG evidence
+- dbt execution evidence
+- warehouse evidence
+- dashboard evidence
+
+## Evidence for reviewers
+
+Reviewer-facing evidence is available in:
+
+- `docs/execution-evidence.md`
+- `docs/review-guide.md`
+
+Recommended evidence to include there:
+
+- Airflow DAG screenshot
+- Silver quality report screenshot or JSON excerpt
+- BigQuery tables screenshot
+- dbt run/test output screenshot
+- dashboard screenshot
 
 ## Lessons learned
 

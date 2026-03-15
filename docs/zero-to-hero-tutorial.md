@@ -6,7 +6,7 @@ By the end, you should understand how Global City Air Quality Observatory works,
 
 ## 1. What We Are Building
 
-Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and São Paulo using OpenAQ, GCS, Spark, BigQuery, dbt, Airflow, and Looker Studio.
+Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and Berlin using OpenAQ, GCS, Spark, BigQuery, dbt, Airflow, and Looker Studio.
 
 The project question is:
 
@@ -42,11 +42,11 @@ The project scope is fixed to:
 - New York
 - Delhi
 - Beijing
-- São Paulo
+- Berlin
 
 This smaller scope helps in four ways:
 
-- it gives geographic spread
+- it gives cross-region and policy contrast
 - it creates strong analytical contrast
 - it keeps the pipeline manageable
 - it makes the dashboard readable during review
@@ -478,4 +478,4 @@ If you are new to data engineering, learn this project in this order:
 
 If you remember only one sentence, remember this:
 
-Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and São Paulo using OpenAQ, GCS, Spark, BigQuery, dbt, Airflow, and Looker Studio.
+Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and Berlin using OpenAQ, GCS, Spark, BigQuery, dbt, Airflow, and Looker Studio.

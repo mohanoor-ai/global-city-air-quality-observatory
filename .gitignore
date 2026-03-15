@@ -215,6 +215,7 @@ data/raw/
 data/curated/
 data/processed/
 data/bronze/
+data/silver/
 data/quality/
 
 *.parquet
@@ -222,6 +223,7 @@ data/quality/
 !ingestion/location_targets.csv
 
 # Airflow
+.airflow/
 airflow/logs/
 airflow/plugins/__pycache__/
 

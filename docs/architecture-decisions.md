@@ -4,7 +4,7 @@
 
 Decision:
 
-- keep the project limited to London, New York, Delhi, Beijing, and São Paulo
+- keep the project limited to London, New York, Delhi, Beijing, and Berlin
 
 Why:
 

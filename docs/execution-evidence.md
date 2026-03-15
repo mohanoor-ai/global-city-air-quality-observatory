@@ -1,31 +1,52 @@
-# Proof Of Run
+# Execution evidence
 
-Store reviewer-facing proof-of-run screenshots in [docs/images/](images/).
+This document provides proof that the Global City Air Quality Observatory pipeline ran successfully across orchestration, transformation, warehouse loading, and visualization layers.
 
-Required screenshots:
+## Airflow
 
-- Terraform apply success: [terraform-apply.png](images/terraform-apply.png)
-- Airflow DAG success: [airflow-success.png](images/airflow-success.png)
-- Bronze files in GCS: [gcs-bronze-files.png](images/gcs-bronze-files.png)
-- Silver parquet output: [silver-parquet-output.png](images/silver-parquet-output.png)
-- BigQuery tables created: [bigquery-tables.png](images/bigquery-tables.png)
-- dbt run success: [dbt-run.png](images/dbt-run.png)
-- dbt test success: [dbt-test.png](images/dbt-test.png)
-- Looker Studio dashboard: [dashboard.png](images/dashboard.png)
+### DAG structure
+![Airflow DAG structure](images/airflow_dag_graph.png)
 
-Suggested capture order:
+### Successful DAG run
+![Airflow successful run](images/airflow_success_run.png)
 
-1. Terraform apply success
-2. Bronze files visible in GCS
-3. Silver parquet output visible after Spark
-4. Airflow DAG success
-5. BigQuery tables created
-6. dbt run success
-7. dbt test success
-8. Looker Studio dashboard
+## Bronze and Silver validation
 
-Optional supporting artifacts:
+The pipeline lands raw OpenAQ data in the Bronze layer, transforms it into curated Silver parquet datasets, and validates data quality before warehouse loading.
 
-- terminal output from `uv run python spark/check_silver_data_quality.py`
-- terminal output from `uv run python -m unittest -v tests/test_pipeline_checks.py`
-- exported JSON from `data/quality/silver_dq_report.json`
+### Bronze ingestion success
+![Bronze ingestion success](images/bronze_ingestion_success.png)
+
+### Silver quality report
+![Silver quality report](images/silver_quality_report.png)
+
+## dbt
+
+### dbt run output
+![dbt run output](images/dbt_run_output.png)
+
+### dbt test output
+![dbt test output](images/dbt_test_output.png)
+
+## BigQuery
+
+The warehouse and analytical marts are materialized in BigQuery.
+
+### BigQuery load output
+![BigQuery load output](images/load_to_bigquery.png)
+
+### BigQuery tables
+![BigQuery tables](images/bigquery_tables.png)
+
+## Dashboard
+
+The final dashboard presents a five-city comparison of pollution trends and pollutant patterns.
+
+### Dashboard overview
+![Dashboard overview](images/dashboard_overview.png)
+
+### Dashboard export
+[Global City Air Quality Observatory dashboard PDF](images/Global_City_Air_Quality_Observatory_Dashboard.pdf)
+
+### Live dashboard
+Add your Looker Studio link here.

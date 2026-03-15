@@ -38,11 +38,13 @@ cd ..
 
 4. Confirm or update the dbt profile in `dbt/air_quality_project/profiles.yml.example` and create your working profile.
 
-5. Initialize Airflow if you want to run the DAG locally.
+5. Initialize Airflow if you want to run the DAG locally. Airflow is not installed by `uv sync`, so use a dedicated environment for it.
 
 ```bash
-airflow db init
-airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@example.com --password admin
+uv venv .venv-airflow --python 3.11
+source .venv-airflow/bin/activate
+uv pip install apache-airflow
+bash scripts/airflow_standalone.sh
 ```
 
 ## Pipeline Flow

@@ -38,9 +38,9 @@ CITY_SCOPE: tuple[ScopedCity, ...] = (
         rationale="East Asian megacity with notable policy-driven shifts in pollutant patterns.",
     ),
     ScopedCity(
-        city="São Paulo",
-        country="BR",
-        rationale="South American city that broadens geographic coverage while keeping the dashboard readable.",
+        city="Berlin",
+        country="DE",
+        rationale="European capital that adds policy and urban-form contrast while keeping the fixed scope reviewer-friendly.",
     ),
 )
 

@@ -1,7 +1,7 @@
 # Dashboard Design
 
 This dashboard compares air pollution across five selected cities:
-London, New York, Delhi, Beijing, and São Paulo.
+London, New York, Delhi, Beijing, and Berlin.
 
 ## Main dashboard pages
 

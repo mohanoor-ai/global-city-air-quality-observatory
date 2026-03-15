@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: warehouse
-    database: your-gcp-project-id
+    database: "{{ env_var('PROJECT_ID', 'your-gcp-project-id') }}"
     schema: air_quality_dw
     tables:
       - name: fct_air_quality_measurements

@@ -2,7 +2,20 @@
 
 This document provides proof that the Global City Air Quality Observatory pipeline ran successfully across orchestration, transformation, warehouse loading, and visualization layers.
 
-All evidence assets referenced below are committed in `docs/images/`.
+All proof-of-run assets referenced below are committed in `docs/images/`.
+
+Committed evidence files used in this document:
+
+- `airflow_dag_graph.png`
+- `airflow_success_run.png`
+- `bronze_ingestion_success.png`
+- `silver_quality_report.png`
+- `dbt_run_output.png`
+- `dbt_test_output.png`
+- `load_to_bigquery.png`
+- `bigquery_tables.png`
+- `dashboard_overview.png`
+- `Global_City_Air_Quality_Observatory_Dashboard.pdf`
 
 ## Airflow
 
@@ -32,7 +45,7 @@ The pipeline lands raw OpenAQ data in the Bronze layer, transforms it into curat
 
 ## BigQuery
 
-The warehouse and analytical marts are materialized in BigQuery.
+The warehouse and analytical marts are materialized in BigQuery. Cloud-side evidence is already captured below through the load and table screenshots committed in `docs/images/`.
 
 ### BigQuery load output
 ![BigQuery load output](images/load_to_bigquery.png)

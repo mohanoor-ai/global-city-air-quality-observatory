@@ -6,7 +6,7 @@ By the end, you should understand how Global City Air Quality Observatory works,
 
 ## 1. What We Are Building
 
-Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and Berlin using OpenAQ, GCS, Spark, BigQuery, dbt, Airflow, and Looker Studio.
+Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and Berlin using OpenAQ, GCP, Spark, BigQuery, dbt, Airflow, and Looker Studio.
 
 The project question is:
 
@@ -27,8 +27,9 @@ This repo answers those questions with a clear batch pipeline:
 
 ```text
 OpenAQ source data
--> Bronze ingestion to Google Cloud Storage
+-> Local Bronze landing in data/bronze
 -> Spark Bronze to Silver transformation
+-> Silver staged to GCS for BigQuery loading
 -> BigQuery warehouse loading
 -> dbt analytical marts
 -> Looker Studio dashboard
@@ -443,20 +444,22 @@ Check:
 
 ## 16. How To Produce Final Proof Of Run
 
-Store screenshots in [docs/images/](images/).
+The committed reviewer-facing evidence files live in [docs/images/](images/).
 
-Required screenshots:
+Current evidence assets include:
 
-- `terraform-apply.png`
-- `airflow-success.png`
-- `gcs-bronze-files.png`
-- `silver-parquet-output.png`
-- `bigquery-tables.png`
-- `dbt-run.png`
-- `dbt-test.png`
-- `dashboard.png`
+- `airflow_dag_graph.png`
+- `airflow_success_run.png`
+- `bronze_ingestion_success.png`
+- `silver_quality_report.png`
+- `load_to_bigquery.png`
+- `bigquery_tables.png`
+- `dbt_run_output.png`
+- `dbt_test_output.png`
+- `dashboard_overview.png`
+- `Global_City_Air_Quality_Observatory_Dashboard.pdf`
 
-These are described in [docs/execution-evidence.md](execution-evidence.md).
+They are described in [docs/execution-evidence.md](execution-evidence.md).
 
 ## 17. Suggested Learning Path
 
@@ -478,4 +481,4 @@ If you are new to data engineering, learn this project in this order:
 
 If you remember only one sentence, remember this:
 
-Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and Berlin using OpenAQ, GCS, Spark, BigQuery, dbt, Airflow, and Looker Studio.
+Global City Air Quality Observatory is a batch data engineering project that compares air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and Berlin using OpenAQ, GCP, Spark, BigQuery, dbt, Airflow, and Looker Studio.

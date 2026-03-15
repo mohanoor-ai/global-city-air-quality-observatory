@@ -58,8 +58,9 @@ The single source of truth for project scope is `ingestion/location_targets.csv`
 
 ```text
 OpenAQ source data
--> Bronze ingestion to Google Cloud Storage
+-> Local Bronze landing in data/bronze
 -> Spark Bronze to Silver transformation
+-> Silver staged to GCS for BigQuery loading
 -> BigQuery warehouse loading
 -> dbt analytical marts
 -> Looker Studio dashboard
@@ -177,8 +178,8 @@ Dashboard preview:
 
 ### Prerequisites
 
-- Python
-- Java
+- Python `3.11` to `3.13`
+- Java 17
 - `uv`
 - Google Cloud credentials
 - Terraform
@@ -259,10 +260,12 @@ Reviewer-facing evidence is available in:
 - `docs/execution-evidence.md`
 - `docs/review-guide.md`
 
-Recommended evidence to include there:
+Evidence included there:
 
 - Airflow DAG screenshot
+- Bronze ingestion screenshot
 - Silver quality report screenshot or JSON excerpt
+- BigQuery load screenshot
 - BigQuery tables screenshot
 - dbt run/test output screenshot
 - dashboard screenshot

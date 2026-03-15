@@ -2,6 +2,8 @@
 
 This document provides proof that the Global City Air Quality Observatory pipeline ran successfully across orchestration, transformation, warehouse loading, and visualization layers.
 
+All evidence assets referenced below are committed in `docs/images/`.
+
 ## Airflow
 
 ### DAG structure
@@ -49,4 +51,4 @@ The final dashboard presents a five-city comparison of pollution trends and poll
 [Global City Air Quality Observatory dashboard PDF](images/Global_City_Air_Quality_Observatory_Dashboard.pdf)
 
 ### Live dashboard
-Add your Looker Studio link here.
+[Global City Air Quality Observatory Looker Studio dashboard](https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de)

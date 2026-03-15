@@ -20,7 +20,7 @@
   <text class="small" x="245" y="182">ingestion</text>
 
   <rect class="box" x="430" y="120" width="170" height="90"/>
-  <text class="label" x="460" y="155">GCS Bronze</text>
+  <text class="label" x="445" y="155">Local Bronze</text>
   <text class="small" x="460" y="182">raw csv.gz</text>
 
   <rect class="box" x="640" y="120" width="170" height="90"/>

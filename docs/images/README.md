@@ -2,7 +2,7 @@
 
 Store reviewer-facing screenshots and architecture assets in this folder.
 
-Tracked assets:
+Current tracked evidence assets:
 
 - `architecture_diagram.svg`
 - `airflow_dag_graph.png`
@@ -16,7 +16,7 @@ Tracked assets:
 - `dashboard_overview.png`
 - `Global_City_Air_Quality_Observatory_Dashboard.pdf`
 
-Recommended evidence filenames:
+Current evidence filenames:
 
 - `airflow_dag_graph.png`
 - `airflow_success_run.png`

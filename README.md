@@ -93,6 +93,7 @@ This repository demonstrates a complete batch analytics pipeline using the follo
 - `docs/` - reviewer guide, architecture decisions, execution evidence, dashboard design
 - `tests/` - validation checks
 - `scripts/` - helper scripts for dbt execution and local Airflow startup
+- `requirements.txt` - reviewer-friendly pip install snapshot generated from `uv.lock`
 
 ## End-to-end pipeline flow
 
@@ -180,7 +181,7 @@ Dashboard preview:
 
 - Python `3.11` to `3.13`
 - Java 17
-- `uv`
+- `uv` for the development workflow, or `pip` with `requirements.txt` for reviewer setup
 - Google Cloud credentials
 - Terraform
 - dedicated Airflow environment for local DAG runs
@@ -188,8 +189,18 @@ Dashboard preview:
 
 ### Setup
 
+For development, keep using `uv`:
+
 ```bash
 uv sync
+```
+
+For reviewer-friendly installation without `uv`:
+
+```bash
+python -m venv .venv-review
+source .venv-review/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 Configure environment variables and Google Cloud credentials, then provision infrastructure.
@@ -212,6 +223,8 @@ cd ..
 ```
 
 ### Manual pipeline run
+
+If you installed dependencies with `requirements.txt` in an activated virtualenv, replace each `uv run python` command below with `python`.
 
 ```bash
 uv run python main.py show-scope

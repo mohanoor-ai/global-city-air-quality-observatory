@@ -4,7 +4,7 @@
 
 - Python `3.11` to `3.13`
 - Java 17 for local Spark
-- `uv`
+- `uv` for the development workflow, or `pip` with `requirements.txt` for reviewer setup
 - `gcloud`
 - `bq`
 - Terraform
@@ -15,8 +15,18 @@
 
 1. Install project dependencies.
 
+For development, keep using `uv`:
+
 ```bash
 uv sync
+```
+
+For reviewer-friendly installation without `uv`:
+
+```bash
+python -m venv .venv-review
+source .venv-review/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 2. Authenticate to GCP.
@@ -64,6 +74,8 @@ The Airflow DAG in [airflow/global_city_air_quality_observatory_dag.py](airflow/
 ## Run Stage By Stage
 
 Run the same flow manually from the repo root if needed.
+
+If you installed dependencies from `requirements.txt` in an activated virtualenv, replace each `uv run python` command below with `python`.
 
 1. Show the fixed five-city scope.
 

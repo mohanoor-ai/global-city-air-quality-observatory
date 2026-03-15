@@ -4,7 +4,7 @@
 
 - Git
 - Python 3.11 to 3.13
-- `uv`
+- `uv` for the development workflow, or `pip` with `requirements.txt` for reviewer setup
 - Google Cloud SDK (`gcloud`, `bq`)
 - Terraform (only if you want to provision cloud resources)
 - Airflow (only if you want to run DAGs locally)
@@ -14,6 +14,7 @@
 ```bash
 git --version
 python3 --version
+# Optional for the development workflow:
 uv --version
 gcloud --version
 bq version
@@ -22,8 +23,18 @@ terraform --version
 
 ## Install Python dependencies
 
+For development:
+
 ```bash
 uv sync
+```
+
+For reviewer-friendly installation without `uv`:
+
+```bash
+python -m venv .venv-review
+source .venv-review/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 ## dbt environment

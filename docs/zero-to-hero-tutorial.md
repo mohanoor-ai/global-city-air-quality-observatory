@@ -120,15 +120,25 @@ You need:
 
 - Python `3.11` to `3.13`
 - Java 17
-- `uv`
+- `uv` for the development workflow, or `pip` with `requirements.txt` for reviewer setup
 - `gcloud`
 - `bq`
 - Terraform
 
 ### Step 2: Install Python dependencies
 
+For development:
+
 ```bash
 uv sync
+```
+
+For reviewer-friendly installation without `uv`:
+
+```bash
+python -m venv .venv-review
+source .venv-review/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 ### Step 3: Authenticate to GCP
@@ -187,6 +197,8 @@ This checks whether the Silver DQ report exists and whether it passed.
 ## 8. Running The Pipeline Manually
 
 This is the best section to follow if you want to understand each stage deeply.
+
+If you installed dependencies from `requirements.txt` in an activated virtualenv, replace each `uv run python` command below with `python`.
 
 ### Step 1: Show scope
 

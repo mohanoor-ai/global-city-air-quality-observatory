@@ -6,8 +6,18 @@ This document explains how to set up the project locally for development.
 
 ## Python Environment
 
+For development:
+
 ```bash
 uv sync
+```
+
+For reviewer-friendly installation without `uv`:
+
+```bash
+python -m venv .venv-review
+source .venv-review/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 ---

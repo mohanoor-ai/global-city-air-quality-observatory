@@ -9,7 +9,7 @@ Batch data engineering project comparing air pollution trends and pollutant patt
 - Reviewer guide: `docs/review-guide.md`
 - Proof of run: `docs/execution-evidence.md`
 - Dashboard documentation: `docs/dashboard-design.md`
-- Live dashboard: `<PASTE_YOUR_LOOKER_STUDIO_LINK_HERE>`
+- Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
 
 ## Problem statement
 
@@ -166,8 +166,12 @@ It focuses on:
 Dashboard resources:
 
 - Documentation: `docs/dashboard-design.md`
-- Live dashboard: `<PASTE_YOUR_LOOKER_STUDIO_LINK_HERE>`
+- Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
 - Evidence screenshots: `docs/execution-evidence.md`
+
+Dashboard preview:
+
+![Global City Air Quality Observatory dashboard preview](docs/images/dashboard_overview.png)
 
 ## How to run from zero
 

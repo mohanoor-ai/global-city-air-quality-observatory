@@ -12,11 +12,11 @@ For development:
 uv sync
 ```
 
-For reviewer-friendly installation without `uv`:
+If you prefer not to use `uv`:
 
 ```bash
-python -m venv .venv-review
-source .venv-review/bin/activate
+python -m venv .venv-pip
+source .venv-pip/bin/activate
 python -m pip install -r requirements.txt
 ```
 

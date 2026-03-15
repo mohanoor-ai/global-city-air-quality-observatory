@@ -32,4 +32,4 @@ In this repository, location-to-city/country mapping is managed with:
 
 `ingestion/location_targets.csv`
 
-This keeps the ingestion logic simple and transparent for project review.
+This keeps the ingestion logic simple and transparent in the documentation.

@@ -10,7 +10,7 @@ Why:
 
 - this avoids an over-broad global analysis story
 - the five-city comparison is easier to validate and explain
-- the dashboard remains readable during review
+- the dashboard remains readable and easy to follow
 
 ## ADR-002: Batch Architecture
 
@@ -44,7 +44,7 @@ Decision:
 
 Why:
 
-- reviewer-facing queries filter by date
+- common analytical queries filter by date
 - the project centers on city comparison
 - pollutant slicing is common in marts and dashboard pages
 

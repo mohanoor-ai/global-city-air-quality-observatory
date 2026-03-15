@@ -2,7 +2,7 @@
 
 This tutorial teaches the project from first principles and walks all the way from idea to runnable pipeline.
 
-By the end, you should understand how Global City Air Quality Observatory works, why each tool is used, how to run each stage, and what evidence to collect for a reviewer.
+By the end, you should understand how Global City Air Quality Observatory works, why each tool is used, how to run each stage, and what evidence to collect for the project documentation.
 
 ## 1. What We Are Building
 
@@ -50,7 +50,7 @@ This smaller scope helps in four ways:
 - it gives cross-region and policy contrast
 - it creates strong analytical contrast
 - it keeps the pipeline manageable
-- it makes the dashboard readable during review
+- it makes the dashboard readable and easy to follow
 
 The single source of truth is [ingestion/location_targets.csv](../ingestion/location_targets.csv).
 
@@ -104,7 +104,7 @@ The main folders you will work with are:
 - [dbt/](../dbt/) for analytical marts
 - [airflow/](../airflow/) for orchestration
 - [docs/dashboard-design.md](dashboard-design.md) for dashboard structure
-- [docs/](./) for reviewer-facing support docs
+- [docs/](./) for project support docs
 
 The main entry files are:
 
@@ -120,7 +120,7 @@ You need:
 
 - Python `3.11` to `3.13`
 - Java 17
-- `uv` for the development workflow, or `pip` with `requirements.txt` for reviewer setup
+- `uv` for the development workflow, or `pip` with `requirements.txt` as an optional installation path
 - `gcloud`
 - `bq`
 - Terraform
@@ -133,11 +133,11 @@ For development:
 uv sync
 ```
 
-For reviewer-friendly installation without `uv`:
+If you prefer not to use `uv`:
 
 ```bash
-python -m venv .venv-review
-source .venv-review/bin/activate
+python -m venv .venv-pip
+source .venv-pip/bin/activate
 python -m pip install -r requirements.txt
 ```
 
@@ -350,7 +350,7 @@ This matters because the dashboard commonly filters by:
 - city
 - pollutant
 
-That means the warehouse layout supports both performance and reviewer-facing design decisions.
+That means the warehouse layout supports both performance and dashboard-oriented design decisions.
 
 ## 12. What dbt Adds
 
@@ -393,9 +393,9 @@ Recommended pages:
 
 - show notable spikes and outliers
 
-## 14. What A Reviewer Will Look For
+## 14. What To Check
 
-A reviewer will usually check:
+A solid project check usually covers:
 
 - whether the project question is clear
 - whether the city scope is consistent everywhere
@@ -409,7 +409,7 @@ A reviewer will usually check:
 Useful supporting docs:
 
 - [runbook.md](../runbook.md)
-- [docs/review-guide.md](review-guide.md)
+- [docs/project-guide.md](project-guide.md)
 - [docs/architecture-decisions.md](architecture-decisions.md)
 - [docs/execution-evidence.md](execution-evidence.md)
 
@@ -456,7 +456,7 @@ Check:
 
 ## 16. How To Produce Final Proof Of Run
 
-The committed reviewer-facing evidence files live in [docs/images/](images/).
+The committed project evidence files live in [docs/images/](images/).
 
 Current evidence assets include:
 

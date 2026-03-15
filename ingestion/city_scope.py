@@ -40,7 +40,7 @@ CITY_SCOPE: tuple[ScopedCity, ...] = (
     ScopedCity(
         city="Berlin",
         country="DE",
-        rationale="European capital that adds policy and urban-form contrast while keeping the fixed scope reviewer-friendly.",
+        rationale="European capital that adds policy and urban-form contrast while keeping the fixed scope clear and reproducible.",
     ),
 )
 

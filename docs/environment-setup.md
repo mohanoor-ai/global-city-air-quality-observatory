@@ -4,7 +4,7 @@
 
 - Git
 - Python 3.11 to 3.13
-- `uv` for the development workflow, or `pip` with `requirements.txt` for reviewer setup
+- `uv` for the development workflow, or `pip` with `requirements.txt` as an optional installation path
 - Google Cloud SDK (`gcloud`, `bq`)
 - Terraform (only if you want to provision cloud resources)
 - Airflow (only if you want to run DAGs locally)
@@ -29,11 +29,11 @@ For development:
 uv sync
 ```
 
-For reviewer-friendly installation without `uv`:
+If you prefer not to use `uv`:
 
 ```bash
-python -m venv .venv-review
-source .venv-review/bin/activate
+python -m venv .venv-pip
+source .venv-pip/bin/activate
 python -m pip install -r requirements.txt
 ```
 

@@ -6,7 +6,7 @@ Batch data engineering project comparing air pollution trends and pollutant patt
 
 - Architecture diagram: `docs/images/architecture_diagram.svg`
 - Runbook: `runbook.md`
-- Reviewer guide: `docs/review-guide.md`
+- Project guide: `docs/project-guide.md`
 - Proof of run: `docs/execution-evidence.md`
 - Dashboard documentation: `docs/dashboard-design.md`
 - Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
@@ -38,7 +38,7 @@ This project compares:
 
 Air pollution is a meaningful cross-city comparison problem because the same pollutants can behave differently across places, seasons, and monitoring environments.
 
-This project uses a fixed five-city scope to stay focused, reviewer-friendly, and reproducible. The goal is not global ranking. The goal is a consistent five-city comparison built as an end-to-end batch data engineering project.
+This project uses a fixed five-city scope to stay focused, clear, and reproducible. The goal is not global ranking. The goal is a consistent five-city comparison built as an end-to-end batch data engineering project.
 
 ## Data source and scope
 
@@ -90,10 +90,10 @@ This repository demonstrates a complete batch analytics pipeline using the follo
 - `dbt/` - staging models and analytical marts
 - `airflow/` - orchestration DAGs for backfill and daily runs
 - `terraform/` - GCP infrastructure as code
-- `docs/` - reviewer guide, architecture decisions, execution evidence, dashboard design
+- `docs/` - project guide, architecture decisions, execution evidence, dashboard design
 - `tests/` - validation checks
 - `scripts/` - helper scripts for dbt execution and local Airflow startup
-- `requirements.txt` - reviewer-friendly pip install snapshot generated from `uv.lock`
+- `requirements.txt` - pip install snapshot generated from `uv.lock`
 
 ## End-to-end pipeline flow
 
@@ -137,7 +137,7 @@ The exact DAG task flow is:
 - `dbt_test`
 - `verify_quality_report`
 
-This keeps the orchestration easy to review from source download through warehouse loading, dbt transformation, and final validation.
+This keeps the orchestration easy to inspect from source download through warehouse loading, dbt transformation, and final validation.
 
 ## Warehouse loading and modeling
 
@@ -181,7 +181,7 @@ Dashboard preview:
 
 - Python `3.11` to `3.13`
 - Java 17
-- `uv` for the development workflow, or `pip` with `requirements.txt` for reviewer setup
+- `uv` for the development workflow, or `pip` with `requirements.txt` as an optional installation path
 - Google Cloud credentials
 - Terraform
 - dedicated Airflow environment for local DAG runs
@@ -195,11 +195,11 @@ For development, keep using `uv`:
 uv sync
 ```
 
-For reviewer-friendly installation without `uv`:
+If you prefer not to use `uv`:
 
 ```bash
-python -m venv .venv-review
-source .venv-review/bin/activate
+python -m venv .venv-pip
+source .venv-pip/bin/activate
 python -m pip install -r requirements.txt
 ```
 
@@ -259,19 +259,19 @@ Successful runs should produce:
 - supporting BigQuery dimensions
 - dbt reporting marts
 
-### Reviewer-facing outputs
+### Documentation outputs
 
 - Airflow DAG evidence
 - dbt execution evidence
 - warehouse evidence
 - dashboard evidence
 
-## Evidence for reviewers
+## Project guide and evidence
 
-Reviewer-facing evidence is available in:
+Project documentation and evidence are available in:
 
 - `docs/execution-evidence.md`
-- `docs/review-guide.md`
+- `docs/project-guide.md`
 
 Evidence included there:
 
@@ -291,9 +291,9 @@ Keeping the scope fixed to five cities made the project easier to explain, valid
 
 - [docs/architecture-decisions.md](docs/architecture-decisions.md)
 
-## Reviewer guide
+## Project guide
 
-- [docs/review-guide.md](docs/review-guide.md)
+- [docs/project-guide.md](docs/project-guide.md)
 
 ## Proof of run
 

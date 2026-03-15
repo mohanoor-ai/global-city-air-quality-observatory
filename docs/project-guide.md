@@ -1,4 +1,4 @@
-# Reviewer guide
+# Project guide
 
 ## What this project does
 
@@ -16,7 +16,7 @@ The source data is processed on scheduled intervals, so a batch architecture is 
 
 Spark is used in the Bronze to Silver layer to demonstrate distributed data transformation instead of relying on Pandas.
 
-## What the reviewer should check
+## What to check
 
 - Terraform provisions cloud resources
 - Airflow orchestrates the pipeline

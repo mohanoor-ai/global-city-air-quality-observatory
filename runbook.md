@@ -4,7 +4,7 @@
 
 - Python `3.11` to `3.13`
 - Java 17 for local Spark
-- `uv` for the development workflow, or `pip` with `requirements.txt` for reviewer setup
+- `uv` for the development workflow, or `pip` with `requirements.txt` as an optional installation path
 - `gcloud`
 - `bq`
 - Terraform
@@ -21,11 +21,11 @@ For development, keep using `uv`:
 uv sync
 ```
 
-For reviewer-friendly installation without `uv`:
+If you prefer not to use `uv`:
 
 ```bash
-python -m venv .venv-review
-source .venv-review/bin/activate
+python -m venv .venv-pip
+source .venv-pip/bin/activate
 python -m pip install -r requirements.txt
 ```
 

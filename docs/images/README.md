@@ -1,6 +1,6 @@
 # Project Images
 
-Store reviewer-facing screenshots and architecture assets in this folder.
+Store project screenshots and architecture assets in this folder.
 
 Current tracked evidence assets:
 

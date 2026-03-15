@@ -33,4 +33,4 @@ Then one valid `location_id` was selected per city and added to `location_target
 
 - fixed five-city comparison with strong policy and pollution contrast
 - keeps ingestion volume manageable
-- supports reviewer-friendly comparison across different urban contexts
+- supports clear comparison across different urban contexts

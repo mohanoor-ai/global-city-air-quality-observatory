@@ -31,6 +31,6 @@ When cloud upload is enabled, the same `bronze/` and `silver/` prefixes are used
 
 ## Why this design
 
-- easy to explain during review
+- easy to explain and inspect
 - easy to inspect locally
 - enough structure for backfill and daily runs without extra complexity

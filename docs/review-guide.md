@@ -1,58 +1,42 @@
 # Reviewer Guide
 
-This is the fastest way to inspect the project without running the full
-pipeline.
+This project downloads OpenAQ archive data for five cities, transforms it with
+Spark, loads a BigQuery warehouse, builds dbt marts, and shows the result in a
+Looker Studio dashboard.
 
-## What The Project Does
+## Where to Look
 
-A batch pipeline that downloads OpenAQ archive data for five cities, transforms
-it to Silver parquet with Spark, stages it in GCS, loads it into BigQuery,
-builds dbt marts, and shows the results in Looker Studio.
-
-## 5-Minute File Check
-
-| What to inspect | File |
+| Part | File |
 |---|---|
-| Problem statement and run steps | `README.md` |
-| Airflow DAG | `airflow/dags/global_city_air_quality_observatory_dag.py` |
+| DAG | `airflow/dags/global_city_air_quality_observatory_dag.py` |
 | Ingestion | `ingestion/download_air_quality_data.py` |
 | City scope | `ingestion/location_targets.csv` |
 | Spark transform | `spark/bronze_to_silver.py` |
-| Silver DQ | `spark/check_silver_data_quality.py` |
-| BigQuery load | `warehouse/load_to_bigquery.py` |
+| Silver quality checks | `spark/check_silver_data_quality.py` |
+| Warehouse load | `warehouse/load_to_bigquery.py` |
 | dbt project | `dbt/air_quality_project/` |
 | Terraform | `terraform/main.tf` |
-| Proof of run | `docs/execution-evidence.md` |
+| Dashboard proof | `docs/execution-evidence.md` |
 
-## What To Verify Quickly
+## What to Expect
 
-- The project question is a fixed five-city comparison.
-- Airflow is the official orchestration path.
-- Bronze, Silver, warehouse, dbt, and dashboard steps all exist.
-- Terraform provisions the bucket and BigQuery dataset/tables.
-- The fact table is partitioned by `measurement_date` and clustered by `city`
-  and `pollutant`.
-- Dashboard proof and run screenshots are committed in `docs/images/`.
+Local outputs:
+- `data/bronze/location_metadata.csv`
+- `data/silver/air_quality_measurements/`
+- `data/quality/silver_dq_report.json`
 
-## Reproducibility
+BigQuery tables:
+- `air_quality_dw.fct_air_quality_measurements`
+- `air_quality_dw.dim_city`
+- `air_quality_dw.dim_pollutant`
 
-The shortest reviewer path is:
+dbt marts:
+- `mart_city_pollution_trends`
+- `mart_city_pollutant_distribution`
+- `mart_city_extreme_events`
+- `mart_city_comparison_summary`
+- `mart_pm25_city_daily`
 
-1. read `README.md`
-2. create a local `.venv` and install `requirements.txt`
-3. inspect the DAG and stage scripts
-4. check `docs/execution-evidence.md`
-5. use `make run` for a manual path or `make airflow-start` for Airflow
-
-Required local config files:
-
-- `.env` copied from `.env.example` for Airflow
-- `terraform/terraform.tfvars` copied from `terraform/terraform.tfvars.example`
-
-## Known Limitations
-
-- Cloud steps still require valid GCP credentials.
-- Airflow local startup depends on Docker Desktop or Docker Engine being
-  accessible from the current shell.
-- The dashboard is external to the repo, so the committed screenshot and PDF are
-  the fallback evidence.
+Dashboard proof:
+- `docs/images/dashboard_overview.png`
+- `docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf`

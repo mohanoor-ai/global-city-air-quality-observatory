@@ -10,15 +10,7 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 
 
-def resolve_project_root() -> str:
-    configured_root = os.getenv("PIPELINE_PROJECT_ROOT")
-    if configured_root:
-        return configured_root
-
-    return str(Path(__file__).resolve().parents[2])
-
-
-PROJECT_ROOT = resolve_project_root()
+PROJECT_ROOT = os.getenv("PIPELINE_PROJECT_ROOT", str(Path(__file__).resolve().parents[2]))
 DBT_PROJECT_ROOT = f"{PROJECT_ROOT}/dbt/air_quality_project"
 TFVARS_FILE = f"{PROJECT_ROOT}/terraform/terraform.tfvars"
 
@@ -42,14 +34,14 @@ def dbt_command(command: str) -> str:
 
 
 def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
-    show_scope = BashOperator(
-        task_id="show_scope",
-        bash_command=f"cd {PROJECT_ROOT} && python ingestion/download_air_quality_data.py --show-scope",
+    validate_city_scope = BashOperator(
+        task_id="validate_city_scope",
+        bash_command=f"cd {PROJECT_ROOT} && python ingestion/download_air_quality_data.py --validate-scope",
         dag=dag,
     )
 
-    download_data = BashOperator(
-        task_id="download_data",
+    download_bronze_data = BashOperator(
+        task_id="download_bronze_data",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
             f"python ingestion/download_air_quality_data.py --mode {ingestion_mode}"
@@ -64,7 +56,7 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
     )
 
     bronze_to_silver = BashOperator(
-        task_id="bronze_to_silver",
+        task_id="transform_bronze_to_silver",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
             "python spark/bronze_to_silver.py "
@@ -74,13 +66,13 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
     )
 
     silver_data_quality = BashOperator(
-        task_id="silver_data_quality",
+        task_id="run_silver_quality_checks",
         bash_command=f"cd {PROJECT_ROOT} && python spark/check_silver_data_quality.py",
         dag=dag,
     )
 
     load_bigquery = BashOperator(
-        task_id="load_bigquery",
+        task_id="load_bigquery_tables",
         bash_command=f"cd {PROJECT_ROOT} && python warehouse/load_to_bigquery.py",
         dag=dag,
     )
@@ -98,14 +90,14 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
     )
 
     verify_quality_report = BashOperator(
-        task_id="verify_quality_report",
+        task_id="verify_saved_quality_report",
         bash_command=f"cd {PROJECT_ROOT} && python spark/check_silver_data_quality.py --verify-report",
         dag=dag,
     )
 
     (
-        show_scope
-        >> download_data
+        validate_city_scope
+        >> download_bronze_data
         >> verify_bronze
         >> bronze_to_silver
         >> silver_data_quality

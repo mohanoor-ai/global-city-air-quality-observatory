@@ -9,12 +9,11 @@ import sys
 
 import pandas as pd
 
-# Support `python spark/check_silver_data_quality.py ...` from the repo root.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from ingestion.city_scope import scope_names
+from ingestion.download_air_quality_data import scope_names
 
 
 SILVER_DIR = Path("data/silver/air_quality_measurements")

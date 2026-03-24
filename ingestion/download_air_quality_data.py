@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -13,23 +14,22 @@ import boto3
 from botocore import UNSIGNED
 from botocore.config import Config
 
-# Support `python ingestion/download_air_quality_data.py ...` from the repo root.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
-
-from ingestion.city_scope import DEFAULT_TARGETS_FILE, validate_scope_rows
 
 
 BUCKET_NAME = "openaq-data-archive"
 AWS_REGION = "us-east-1"
 BRONZE_DIR = Path("data/bronze")
 METADATA_FILE = BRONZE_DIR / "location_metadata.csv"
-
-s3 = boto3.client(
-    "s3",
-    region_name=AWS_REGION,
-    config=Config(signature_version=UNSIGNED),
+DEFAULT_TARGETS_FILE = Path("ingestion/location_targets.csv")
+FIXED_SCOPE = (
+    ("London", "GB"),
+    ("New York", "US"),
+    ("Delhi", "IN"),
+    ("Beijing", "CN"),
+    ("Berlin", "DE"),
 )
 
 
@@ -38,6 +38,33 @@ class LocationTarget:
     location_id: str
     city: str
     country: str
+
+
+@lru_cache(maxsize=1)
+def get_s3_client():
+    return boto3.client(
+        "s3",
+        region_name=AWS_REGION,
+        config=Config(signature_version=UNSIGNED),
+    )
+
+
+def scope_names() -> list[str]:
+    return [city for city, _ in FIXED_SCOPE]
+
+
+def validate_scope_rows(rows: list[tuple[str, str]]) -> None:
+    expected = {(city.casefold(), country) for city, country in FIXED_SCOPE}
+    actual = {(city.casefold(), country.upper()) for city, country in rows}
+    if len(rows) != len(FIXED_SCOPE):
+        raise ValueError(
+            f"Expected exactly {len(FIXED_SCOPE)} configured cities, found {len(rows)}."
+        )
+    if actual != expected:
+        raise ValueError(
+            "Configured city scope does not match the fixed project scope: "
+            f"{scope_names()}."
+        )
 
 
 def load_targets(path: Path) -> list[LocationTarget]:
@@ -88,7 +115,7 @@ def write_metadata_file(targets: list[LocationTarget]) -> None:
 
 
 def list_keys(prefix: str) -> list[str]:
-    paginator = s3.get_paginator("list_objects_v2")
+    paginator = get_s3_client().get_paginator("list_objects_v2")
     keys: list[str] = []
     for page in paginator.paginate(Bucket=BUCKET_NAME, Prefix=prefix):
         for obj in page.get("Contents", []):
@@ -108,7 +135,7 @@ def download_key(key: str, overwrite: bool) -> bool:
         return False
 
     local_file.parent.mkdir(parents=True, exist_ok=True)
-    s3.download_file(BUCKET_NAME, key, str(local_file))
+    get_s3_client().download_file(BUCKET_NAME, key, str(local_file))
     return True
 
 
@@ -201,8 +228,8 @@ def run_daily(targets: list[LocationTarget], overwrite: bool) -> tuple[int, int]
     return scanned, downloaded
 
 
-def show_scope(targets: list[LocationTarget]) -> int:
-    print("Configured five-city scope:")
+def validate_scope(targets: list[LocationTarget]) -> int:
+    print("[PASS] Configured five-city scope is valid.")
     for target in targets:
         print(f"- {target.city} ({target.country}) [location_id={target.location_id}]")
     return 0
@@ -272,9 +299,9 @@ def parse_args() -> argparse.Namespace:
         help="Redownload files even if already present in Bronze.",
     )
     parser.add_argument(
-        "--show-scope",
+        "--validate-scope",
         action="store_true",
-        help="Print the configured five-city scope and exit.",
+        help="Check the configured five-city scope and print it.",
     )
     parser.add_argument(
         "--verify-bronze",
@@ -288,8 +315,8 @@ def main() -> int:
     args = parse_args()
     targets = load_targets(Path(args.targets_file))
 
-    if args.show_scope:
-        return show_scope(targets)
+    if args.validate_scope:
+        return validate_scope(targets)
 
     if args.verify_bronze:
         return verify_bronze(targets)

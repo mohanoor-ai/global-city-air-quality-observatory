@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from ingestion import city_scope
 from ingestion import download_air_quality_data as ingest
 from spark import bronze_to_silver as spark_transform
 from spark import check_silver_data_quality as dq
@@ -175,9 +174,9 @@ class TestIngestion(unittest.TestCase):
         self.assertEqual(periods[-1], (2026, 3))
         self.assertEqual(len(periods), 27)
 
-    def test_city_scope_validation_requires_exact_five_city_list(self) -> None:
+    def test_validate_scope_rows_requires_exact_five_city_list(self) -> None:
         with self.assertRaises(ValueError):
-            city_scope.validate_scope_rows([("London", "GB")])
+            ingest.validate_scope_rows([("London", "GB")])
 
 
 class TestIngestionVerification(unittest.TestCase):

@@ -19,12 +19,15 @@ except ModuleNotFoundError:  # pragma: no cover - handled at runtime in main
     F = None  # type: ignore[assignment]
     T = None  # type: ignore[assignment]
 
-# Support `python spark/bronze_to_silver.py ...` from the repo root.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from ingestion.city_scope import DEFAULT_TARGETS_FILE, scope_names, validate_scope_rows
+from ingestion.download_air_quality_data import (
+    DEFAULT_TARGETS_FILE,
+    scope_names,
+    validate_scope_rows,
+)
 
 
 BRONZE_DIR = Path("data/bronze")
@@ -100,9 +103,8 @@ def load_scope_metadata(metadata_path: Path, targets_file: Path) -> list[dict[st
 def build_spark() -> SparkSession:
     if SparkSession is None:
         raise ModuleNotFoundError(
-            "pyspark is not installed. Run `uv sync` before executing Spark transformations."
+            "pyspark is not installed. Install dependencies from requirements.txt first."
         )
-    # Prefer the repo's own PySpark runtime over any ambient Jupyter or system Spark config.
     os.environ.pop("PYSPARK_DRIVER_PYTHON", None)
     os.environ.pop("PYSPARK_DRIVER_PYTHON_OPTS", None)
     os.environ.pop("PYSPARK_SUBMIT_ARGS", None)

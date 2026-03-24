@@ -1,161 +1,51 @@
-# Execution evidence
+# Execution Evidence
 
-This document collects the committed screenshots and proof-of-run outputs for
-the project.
+Latest committed run evidence in this repo is from March 14, 2026.
 
-All proof-of-run assets referenced below are committed in `docs/images/`.
+## Local Outputs
 
-Committed evidence files used in this document:
+- `data/bronze/location_metadata.csv`
+- `data/silver/air_quality_measurements/`
+- `data/silver/latest_run_summary.json`
+- `data/quality/silver_dq_report.json`
 
-- `airflow_dag_graph.png`
-- `airflow_success_run.png`
-- `bronze_ingestion_success.png`
-- `silver_quality_report.png`
-- `dbt_run_output.png`
-- `dbt_test_output.png`
-- `load_to_bigquery.png`
-- `bigquery_tables.png`
-- `gcs_silver_staging.png`
-- `dashboard_overview.png`
-- `Global_City_Air_Quality_Observatory_Dashboard.pdf`
+## BigQuery Tables
 
-## Airflow
+- `air_quality_dw.fct_air_quality_measurements`
+- `air_quality_dw.dim_city`
+- `air_quality_dw.dim_pollutant`
 
-### DAG structure
-![Airflow DAG structure](images/airflow_dag_graph.png)
+## dbt Marts
 
-### Successful DAG run
-![Airflow successful run](images/airflow_success_run.png)
+- `mart_city_pollution_trends`
+- `mart_city_pollutant_distribution`
+- `mart_city_extreme_events`
+- `mart_city_comparison_summary`
+- `mart_pm25_city_daily`
 
-## Bronze and Silver validation
+## Committed Proof Files
 
-The pipeline lands raw OpenAQ data in the Bronze layer, transforms it into curated Silver parquet datasets, and validates data quality before warehouse loading.
+- `images/airflow_dag_graph.png`
+- `images/airflow_success_run.png`
+- `images/bronze_ingestion_success.png`
+- `images/silver_quality_report.png`
+- `images/load_to_bigquery.png`
+- `images/bigquery_tables.png`
+- `images/dbt_run_output.png`
+- `images/dbt_test_output.png`
+- `images/gcs_silver_staging.png`
+- `images/dashboard_overview.png`
+- `images/Global_City_Air_Quality_Observatory_Dashboard.pdf`
 
-### Bronze ingestion success
-![Bronze ingestion success](images/bronze_ingestion_success.png)
+## Verification Notes
 
-### Silver quality report
-![Silver quality report](images/silver_quality_report.png)
+- The GCS staging screenshot was captured from `gcloud storage ls --long gs://aq-lake-moha/silver/air_quality_measurements/`.
+- The saved Silver quality report shows `status: pass`, `row_count: 185473`, and the five expected cities.
+- The committed dbt test screenshot shows `PASS=25 WARN=0 ERROR=0`.
 
-## dbt
+## Dashboard Proof
 
-### dbt run output
-![dbt run output](images/dbt_run_output.png)
-
-### dbt test output
-![dbt test output](images/dbt_test_output.png)
-
-## BigQuery
-
-The warehouse and analytical marts are materialized in BigQuery. Cloud-side evidence is already captured below through the load and table screenshots committed in `docs/images/`.
-
-### BigQuery load output
-![BigQuery load output](images/load_to_bigquery.png)
-
-### BigQuery tables
-![BigQuery tables](images/bigquery_tables.png)
-
-## GCS staging
-
-The warehouse loader stages the Silver parquet dataset in GCS before the
-BigQuery load step. In `warehouse/load_to_bigquery.py`, the local Silver dataset
-at `data/silver/air_quality_measurements` is copied to:
-
-`gs://<configured-bucket>/silver/air_quality_measurements`
-
-That staged path is then used as the source for the `bq load` command.
-
-### GCS Silver bucket contents
-
-![GCS Silver staging](images/gcs_silver_staging.png)
-
-The screenshot above was captured from:
-
-```bash
-gcloud storage ls --long gs://aq-lake-moha/silver/air_quality_measurements/
-```
-
-The listing confirms the staged Silver prefix exists and includes the
-`batch_date=2026-03-14/` partition path used for the warehouse load.
-
-For future captures, `gsutil` also works:
-
-```bash
-gsutil ls -lh gs://aq-lake-moha/silver/air_quality_measurements/
-```
-
-## Data quality numbers
-
-The most recent saved Silver quality report used for the project evidence
-showed a passing run, and the values are copied below for reviewer convenience:
-
-```json
-{
-  "status": "pass",
-  "silver_dir": "data/silver/air_quality_measurements",
-  "row_count": 185473,
-  "cities": [
-    "Beijing",
-    "Berlin",
-    "Delhi",
-    "London",
-    "New York"
-  ],
-  "pollutants": [
-    "no2",
-    "o3",
-    "pm10",
-    "pm25"
-  ],
-  "duplicate_count": 0,
-  "null_checks": {
-    "city": 0,
-    "location_id": 0,
-    "pollutant": 0,
-    "measurement_value": 0,
-    "measurement_datetime": 0
-  },
-  "errors": []
-}
-```
-
-Supplementary row distribution from the latest saved Silver run summary:
-
-```json
-{
-  "city_counts": {
-    "Beijing": 37252,
-    "Berlin": 49165,
-    "Delhi": 18863,
-    "London": 43023,
-    "New York": 37170
-  },
-  "date_range": {
-    "min": "2023-12-31T19:30:00",
-    "max": "2026-03-11T18:30:00"
-  }
-}
-```
-
-## dbt test summary
-
-The committed dbt screenshots show a passing test run. Summary from that run:
-
-```text
-Finished running 25 data tests in 0 hours 0 minutes and 6.64 seconds.
-Completed successfully
-Done. PASS=25 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=25
-```
-
-## Dashboard
-
-The final dashboard presents a five-city comparison of pollution trends and pollutant patterns.
-
-### Dashboard overview
 ![Dashboard overview](images/dashboard_overview.png)
 
-### Dashboard export
-[Global City Air Quality Observatory dashboard PDF](images/Global_City_Air_Quality_Observatory_Dashboard.pdf)
-
-### Live dashboard
-[Global City Air Quality Observatory Looker Studio dashboard](https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de)
+- Live dashboard: [Global City Air Quality Observatory Looker Studio dashboard](https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de)
+- PDF export: [Global City Air Quality Observatory dashboard PDF](images/Global_City_Air_Quality_Observatory_Dashboard.pdf)

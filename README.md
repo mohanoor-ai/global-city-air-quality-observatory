@@ -52,13 +52,13 @@ The official runtime path is the Airflow DAG in
 
 The DAG runs this flow:
 
-1. show the configured city scope
-2. download OpenAQ archive files to Bronze
-3. verify Bronze files exist for every configured city
-4. transform Bronze to Silver with Spark
-5. run Silver data quality checks
-6. load Silver data to BigQuery
-7. build dbt marts
+1. validate city scope
+2. download Bronze data
+3. verify Bronze coverage
+4. transform Bronze to Silver
+5. run Silver quality checks
+6. load BigQuery warehouse tables
+7. run dbt models
 8. run dbt tests
 9. verify the saved quality report
 
@@ -75,13 +75,13 @@ The DAG runs this flow:
 │   ├── Dockerfile
 │   └── dags/global_city_air_quality_observatory_dag.py
 ├── ingestion/
-│   ├── city_scope.py
 │   ├── download_air_quality_data.py
 │   └── location_targets.csv
 ├── spark/
 │   ├── bronze_to_silver.py
 │   └── check_silver_data_quality.py
-├── warehouse/load_to_bigquery.py
+├── warehouse/
+│   └── load_to_bigquery.py
 ├── dbt/air_quality_project/
 ├── terraform/
 │   ├── main.tf

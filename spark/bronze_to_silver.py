@@ -7,7 +7,6 @@ from pathlib import Path
 import csv
 import json
 import os
-import sys
 
 try:
     from pyspark.sql import DataFrame, SparkSession
@@ -19,21 +18,12 @@ except ModuleNotFoundError:  # pragma: no cover - handled at runtime in main
     F = None  # type: ignore[assignment]
     T = None  # type: ignore[assignment]
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from ingestion.download_air_quality_data import (
-    DEFAULT_TARGETS_FILE,
-    scope_names,
-    validate_scope_rows,
-)
-
 
 BRONZE_DIR = Path("data/bronze")
 SILVER_DIR = Path("data/silver/air_quality_measurements")
 METADATA_FILE = BRONZE_DIR / "location_metadata.csv"
 RUN_SUMMARY_PATH = SILVER_DIR.parent / "latest_run_summary.json"
+DEFAULT_TARGETS_FILE = Path("ingestion/location_targets.csv")
 POLLUTANT_ALIASES = {"pm2.5": "pm25"}
 ALLOWED_POLLUTANTS = ("pm25", "pm10", "no2", "co", "o3")
 
@@ -84,9 +74,12 @@ def scope_signature(rows: list[dict[str, str]]) -> set[tuple[str, str, str]]:
     }
 
 
+def city_names(rows: list[dict[str, str]]) -> list[str]:
+    return list(dict.fromkeys(row["city"] for row in rows))
+
+
 def load_scope_metadata(metadata_path: Path, targets_file: Path) -> list[dict[str, str]]:
     target_rows = load_scope_rows(targets_file)
-    validate_scope_rows([(row["city"], row["country"]) for row in target_rows])
 
     if not metadata_path.exists():
         return target_rows
@@ -146,6 +139,7 @@ def build_silver_dataframe(
     spark: SparkSession,
     bronze_dir: Path,
     metadata_rows: list[dict[str, str]],
+    expected_cities: list[str],
     batch_date: str,
 ) -> DataFrame:
     assert F is not None and T is not None
@@ -187,7 +181,7 @@ def build_silver_dataframe(
         .filter(F.col("measurement_datetime").isNotNull())
         .filter(F.col("measurement_value").isNotNull())
         .filter(F.col("pollutant").isin(*ALLOWED_POLLUTANTS))
-        .filter(F.col("city").isin(*scope_names()))
+        .filter(F.col("city").isin(*expected_cities))
         .withColumn("measurement_date", F.to_date("measurement_datetime"))
         .withColumn("batch_date", batch_date_column)
         .select(
@@ -252,6 +246,7 @@ def main() -> int:
     bronze_dir = Path(args.bronze_dir)
     silver_dir = Path(args.silver_dir)
     metadata_rows = load_scope_metadata(METADATA_FILE, Path(args.targets_file))
+    expected_cities = city_names(metadata_rows)
 
     if not bronze_dir.exists():
         raise FileNotFoundError(f"Bronze directory does not exist: {bronze_dir}")
@@ -262,6 +257,7 @@ def main() -> int:
             spark=spark,
             bronze_dir=bronze_dir,
             metadata_rows=metadata_rows,
+            expected_cities=expected_cities,
             batch_date=args.batch_date,
         )
         if silver_df.limit(1).count() == 0:
@@ -278,7 +274,7 @@ def main() -> int:
 
         print(f"[PASS] Spark Silver dataset written to {silver_dir}")
         print(f"[INFO] Rows: {silver_df.count():,}")
-        print(f"[INFO] Cities: {', '.join(scope_names())}")
+        print(f"[INFO] Cities: {', '.join(expected_cities)}")
         return 0
     finally:
         spark.stop()

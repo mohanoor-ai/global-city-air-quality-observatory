@@ -4,22 +4,16 @@ from __future__ import annotations
 
 from pathlib import Path
 from argparse import ArgumentParser, Namespace
+import csv
 import json
-import sys
 
 import pandas as pd
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from ingestion.download_air_quality_data import scope_names
 
 
 SILVER_DIR = Path("data/silver/air_quality_measurements")
 QUALITY_DIR = Path("data/quality")
 REPORT_PATH = QUALITY_DIR / "silver_dq_report.json"
-EXPECTED_CITIES = set(scope_names())
+TARGETS_FILE = Path("ingestion/location_targets.csv")
 EXPECTED_POLLUTANTS = {"pm25", "pm10", "no2", "co", "o3"}
 REQUIRED_COLUMNS = {
     "city",
@@ -36,6 +30,15 @@ REQUIRED_COLUMNS = {
     "batch_date",
     "source_file",
 }
+
+
+def load_expected_cities(targets_file: Path = TARGETS_FILE) -> set[str]:
+    with targets_file.open("r", encoding="utf-8", newline="") as handle:
+        return {
+            str(row.get("city", "")).strip()
+            for row in csv.DictReader(handle)
+            if str(row.get("city", "")).strip()
+        }
 
 
 def parse_args() -> Namespace:
@@ -76,6 +79,7 @@ def main() -> int:
     args = parse_args()
     silver_dir = Path(args.silver_dir)
     report_path = Path(args.report_path)
+    expected_cities = load_expected_cities()
     if args.verify_report:
         return verify_report(report_path)
     errors: list[str] = []
@@ -95,7 +99,7 @@ def main() -> int:
 
     if "city" in df.columns:
         actual_cities = set(df["city"].dropna().astype(str).unique().tolist())
-        if actual_cities != EXPECTED_CITIES:
+        if actual_cities != expected_cities:
             errors.append(f"Silver dataset cities do not match the fixed scope: {sorted(actual_cities)}")
 
     if "pollutant" in df.columns:

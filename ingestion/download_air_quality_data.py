@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 import argparse
 import csv
+import sys
 
 import boto3
 from botocore import UNSIGNED

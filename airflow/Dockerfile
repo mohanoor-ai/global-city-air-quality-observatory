@@ -1,6 +1,13 @@
 FROM apache/airflow:3.1.8
 
-USER root
+USER 0
+
+RUN grep -q '^root:' /etc/passwd || echo 'root:x:0:0:root:/root:/bin/bash' >> /etc/passwd \
+    && grep -q '^root:' /etc/group || echo 'root:x:0:' >> /etc/group \
+    && grep -q '^_apt:' /etc/passwd || echo '_apt:x:100:65534::/nonexistent:/usr/sbin/nologin' >> /etc/passwd \
+    && grep -q '^staff:' /etc/group || echo 'staff:x:50:' >> /etc/group \
+    && grep -q '^sasl:' /etc/group || echo 'sasl:x:45:' >> /etc/group \
+    && grep -q '^airflow:' /etc/passwd || echo 'airflow:x:50000:0:Airflow:/opt/airflow:/bin/bash' >> /etc/passwd
 
 RUN rm -f \
         /etc/apt/sources.list.d/*docker* \
@@ -22,8 +29,9 @@ RUN rm -f \
     && apt-get install -y --no-install-recommends google-cloud-cli \
     && rm -rf /var/lib/apt/lists/*
 
-USER airflow
+USER 50000
 
 COPY requirements.txt /tmp/requirements.txt
 
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+RUN pip install --no-cache-dir 'apache-airflow[celery,postgres]==3.1.8' \
+    && pip install --no-cache-dir -r /tmp/requirements.txt

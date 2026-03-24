@@ -71,12 +71,22 @@ def validate_resolved_args(args: argparse.Namespace) -> None:
 
 def build_gcloud_env() -> dict[str, str]:
     env = os.environ.copy()
-    if "CLOUDSDK_CONFIG" not in env and Path("/tmp/gcloud").exists():
-        env["CLOUDSDK_CONFIG"] = "/tmp/gcloud"
+    credentials_path = env.get("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
+    if credentials_path and Path(credentials_path).exists():
+        env.setdefault("CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE", credentials_path)
+        env.setdefault("CLOUDSDK_CORE_DISABLE_PROMPTS", "1")
     return env
 
 
 def require_active_gcloud_account(env: dict[str, str]) -> None:
+    credential_override = env.get("CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE", "").strip()
+    if credential_override:
+        if not Path(credential_override).exists():
+            raise RuntimeError(
+                f"Configured gcloud credential override file does not exist: {credential_override}"
+            )
+        return
+
     result = subprocess.run(
         [
             "gcloud",
@@ -190,7 +200,8 @@ def main() -> int:
     try:
         require_active_gcloud_account(env)
         silver_dir = silver_dataset_path()
-        gcs_prefix = f"gs://{args.bucket}/silver/air_quality_measurements"
+        gcs_root = f"gs://{args.bucket}/silver"
+        gcs_prefix = f"{gcs_root}/air_quality_measurements"
         gcs_uri = build_gcs_source_uris(silver_dir, gcs_prefix)
         target_fq = f"{args.project_id}.{args.dataset}.{args.fact_table}"
         staging_fq = f"{args.project_id}.{args.dataset}.{args.staging_table}"
@@ -199,10 +210,10 @@ def main() -> int:
         pollutant_dim_fq = f"{args.project_id}.{args.dataset}.{args.pollutant_dim_table}"
 
         print(f"[INFO] Using Silver dataset: {silver_dir}")
-        print(f"[INFO] Upload target: {gcs_prefix}")
+        print(f"[INFO] Upload target: {gcs_root}")
         print(f"[INFO] BigQuery load source: {gcs_uri}")
 
-        run(["gcloud", "storage", "cp", "--recursive", str(silver_dir), gcs_prefix], env=env)
+        run(["gcloud", "storage", "cp", "--recursive", str(silver_dir), gcs_root], env=env)
 
         run(
             [

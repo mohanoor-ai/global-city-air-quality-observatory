@@ -7,12 +7,13 @@ import os
 from pathlib import Path
 
 from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.providers.standard.operators.bash import BashOperator
 
 
 PROJECT_ROOT = os.getenv("PIPELINE_PROJECT_ROOT", str(Path(__file__).resolve().parents[2]))
 DBT_PROJECT_ROOT = f"{PROJECT_ROOT}/dbt/air_quality_project"
 TFVARS_FILE = f"{PROJECT_ROOT}/terraform/terraform.tfvars"
+DBT_BIN = "/opt/airflow/.local/bin/dbt"
 
 default_args = {
     "owner": "global-city-air-quality-observatory",
@@ -29,7 +30,7 @@ def dbt_command(command: str) -> str:
         f"export PROJECT_ID=${{PROJECT_ID:-$(sed -n 's/^project_id[[:space:]]*=[[:space:]]*\"\\(.*\\)\"/\\1/p' {TFVARS_FILE} | head -n 1)}} && "
         f"export BIGQUERY_LOCATION=${{BIGQUERY_LOCATION:-$(sed -n 's/^bigquery_location[[:space:]]*=[[:space:]]*\"\\(.*\\)\"/\\1/p' {TFVARS_FILE} | head -n 1)}} && "
         "export DBT_DATASET=${DBT_DATASET:-air_quality_dbt} && "
-        f"dbt {command} --project-dir . --profiles-dir ."
+        f"{DBT_BIN} {command} --project-dir . --profiles-dir ."
     )
 
 
@@ -59,8 +60,7 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
         task_id="transform_bronze_to_silver",
         bash_command=(
             f"cd {PROJECT_ROOT} && "
-            "python spark/bronze_to_silver.py "
-            f"--write-mode {'overwrite' if ingestion_mode == 'backfill' else 'append'}"
+            "python spark/bronze_to_silver.py --write-mode overwrite"
         ),
         dag=dag,
     )
@@ -114,6 +114,7 @@ backfill_dag = DAG(
     start_date=datetime(2026, 3, 9),
     schedule=None,
     catchup=False,
+    max_active_runs=1,
     tags=["air-quality", "batch", "backfill"],
 )
 
@@ -123,6 +124,7 @@ daily_dag = DAG(
     start_date=datetime(2026, 3, 9),
     schedule="@daily",
     catchup=False,
+    max_active_runs=1,
     tags=["air-quality", "batch", "daily"],
 )
 

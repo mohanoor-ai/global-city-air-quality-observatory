@@ -38,7 +38,6 @@ airflow-init:
 		exit 1; \
 	}
 	@if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
-	@grep -q '^AIRFLOW_UID=' .env 2>/dev/null || echo "AIRFLOW_UID=$$(id -u)" >> .env
 	docker compose up airflow-init
 
 airflow-start:

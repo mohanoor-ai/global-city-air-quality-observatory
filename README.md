@@ -71,6 +71,8 @@ The DAG runs this flow:
 ├── .env.example
 ├── docker-compose.yml
 ├── Makefile
+├── .github/
+│   └── workflows/tests.yml
 ├── airflow/
 │   ├── Dockerfile
 │   └── dags/global_city_air_quality_observatory_dag.py

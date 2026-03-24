@@ -174,7 +174,7 @@ class TestIngestion(unittest.TestCase):
         self.assertEqual(periods[-1], (2026, 3))
         self.assertEqual(len(periods), 27)
 
-    def test_validate_scope_rows_requires_exact_five_city_list(self) -> None:
+    def test_validate_scope_rows_requires_five_unique_cities(self) -> None:
         with self.assertRaises(ValueError):
             ingest.validate_scope_rows([("London", "GB")])
 

@@ -19,13 +19,6 @@ AWS_REGION = "us-east-1"
 BRONZE_DIR = Path("data/bronze")
 METADATA_FILE = BRONZE_DIR / "location_metadata.csv"
 DEFAULT_TARGETS_FILE = Path("ingestion/location_targets.csv")
-FIXED_SCOPE = (
-    ("London", "GB"),
-    ("New York", "US"),
-    ("Delhi", "IN"),
-    ("Beijing", "CN"),
-    ("Berlin", "DE"),
-)
 
 
 @dataclass
@@ -44,21 +37,25 @@ def get_s3_client():
     )
 
 
-def scope_names() -> list[str]:
-    return [city for city, _ in FIXED_SCOPE]
-
-
 def validate_scope_rows(rows: list[tuple[str, str]]) -> None:
-    expected = {(city.casefold(), country) for city, country in FIXED_SCOPE}
-    actual = {(city.casefold(), country.upper()) for city, country in rows}
-    if len(rows) != len(FIXED_SCOPE):
+    normalized_rows = [
+        (city.strip(), country.strip().upper())
+        for city, country in rows
+    ]
+
+    if len(normalized_rows) != 5:
         raise ValueError(
-            f"Expected exactly {len(FIXED_SCOPE)} configured cities, found {len(rows)}."
+            f"Expected exactly 5 configured cities, found {len(rows)}."
         )
-    if actual != expected:
+
+    if any(not city or not country for city, country in normalized_rows):
         raise ValueError(
-            "Configured city scope does not match the fixed project scope: "
-            f"{scope_names()}."
+            "Configured city scope contains blank city or country values."
+        )
+
+    if len({(city.casefold(), country) for city, country in normalized_rows}) != 5:
+        raise ValueError(
+            "Configured city scope contains duplicate city rows."
         )
 
 

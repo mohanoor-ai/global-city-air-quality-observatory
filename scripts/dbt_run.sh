@@ -38,5 +38,16 @@ if [[ ! -f "$ADC_FILE" ]]; then
 fi
 export GOOGLE_APPLICATION_CREDENTIALS="$ADC_FILE"
 
-"$PROJECT_ROOT/.venv-dbt/bin/python" -c "from dbt.cli.main import cli; raise SystemExit(cli())" \
+DBT_PYTHON="$PROJECT_ROOT/.venv/bin/python"
+if [[ ! -x "$DBT_PYTHON" ]]; then
+  DBT_PYTHON="${PYTHON:-python}"
+fi
+
+if ! "$DBT_PYTHON" -c "import dbt" >/dev/null 2>&1; then
+  echo "[FAIL] dbt is not installed for interpreter: $DBT_PYTHON" >&2
+  echo "[INFO] Run 'uv sync' from the repo root or install requirements.txt in your active environment." >&2
+  exit 1
+fi
+
+"$DBT_PYTHON" -c "from dbt.cli.main import cli; raise SystemExit(cli())" \
   run --project-dir "$DBT_PROJECT_DIR"

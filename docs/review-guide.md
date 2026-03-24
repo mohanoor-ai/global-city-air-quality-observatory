@@ -45,7 +45,7 @@ Architecture decisions and tradeoffs are documented in
 | Spark transform | `spark/bronze_to_silver.py` |
 | Silver quality checks | `spark/check_silver_data_quality.py` |
 | BigQuery loader | `warehouse/load_to_bigquery.py` |
-| Airflow DAGs | `airflow/global_city_air_quality_observatory_dag.py` |
+| Airflow DAGs | `airflow/dags/global_city_air_quality_observatory_dag.py` |
 | dbt staging | `dbt/air_quality_project/models/staging/stg_air_quality.sql` |
 | dbt marts | `dbt/air_quality_project/models/marts/reporting/` |
 | Terraform IaC | `terraform/main.tf`, `terraform/variables.tf`, `terraform/versions.tf` |
@@ -62,14 +62,12 @@ Evidence currently committed includes:
 - Airflow DAG graph and successful run screenshots
 - Bronze ingestion terminal output
 - Silver data quality screenshot and committed JSON report values
+- GCS Silver staging screenshot
 - BigQuery load output
 - BigQuery tables screenshot
 - dbt run output
 - dbt test output and parsed test summary
 - Dashboard screenshot and PDF export
-
-The remaining evidence gap is a committed GCS Silver staging screenshot. The
-exact capture command is documented in `docs/execution-evidence.md`.
 
 ---
 
@@ -78,10 +76,9 @@ exact capture command is documented in `docs/execution-evidence.md`.
 Live dashboard:
 [Global City Air Quality Observatory - Looker Studio](https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de)
 
-If the live link is unavailable or still restricted by Google sharing settings,
-use the committed PDF export:
-
-- `docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf`
+The dashboard is publicly accessible — no Google login required. If for any
+reason the link is temporarily unavailable, a full PDF export is committed at
+`docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf`
 
 ---
 
@@ -92,8 +89,11 @@ Full setup and run instructions live in [`runbook.md`](../runbook.md).
 Quick reproducibility checks:
 
 - `pyproject.toml` and `uv.lock` pin the Python environment
+- the same local Python environment is used for manual pipeline runs and dbt
 - `terraform/terraform.tfvars.example` shows the expected Terraform inputs
-- `scripts/airflow_standalone.sh` starts local Airflow from a dedicated env
+- `docker-compose.yaml` runs Airflow locally via Docker Compose
+- `airflow/Dockerfile` extends the official Airflow image with project runtime dependencies
+- `.env.example` documents the Airflow and GCP environment variables
 - `scripts/dbt_run.sh` and `scripts/dbt_test.sh` wrap dbt execution
 - `main.py` provides the scope and verification CLI commands
 - `Makefile` provides one-command targets for setup, infra, pipeline runs, and tests
@@ -106,7 +106,7 @@ Quick reproducibility checks:
 |---|---|
 | Pipeline is end to end | `README.md` architecture section plus this guide |
 | Terraform provisions storage and warehouse resources | `terraform/main.tf` |
-| Airflow covers the full 9-task flow | `airflow/global_city_air_quality_observatory_dag.py` |
+| Airflow covers the full 9-task flow | `airflow/dags/global_city_air_quality_observatory_dag.py` |
 | Fact table is partitioned and clustered | `terraform/main.tf`, `warehouse/load_to_bigquery.py` |
 | dbt marts are non-trivial aggregations | `dbt/air_quality_project/models/marts/reporting/` |
 | Pipeline has committed run evidence | `docs/execution-evidence.md` and `docs/images/` |
@@ -116,7 +116,7 @@ Quick reproducibility checks:
 
 ## Known limitations
 
-- Airflow is configured for local execution rather than Docker Compose deployment
 - GCP credentials and a populated `terraform/terraform.tfvars` file are still required to run cloud steps
-- The committed evidence set is strong, but the GCS Silver bucket screenshot still needs to be captured and added
-- Dashboard access depends on the current Looker Studio sharing settings; the PDF export is the fallback
+- Airflow runs via Docker Compose — start with `make airflow-start`, UI at `http://localhost:8080`
+- The GCS Silver bucket screenshot has been captured and committed as `docs/images/gcs_silver_staging.png`
+- The dashboard is publicly accessible — no Google login required

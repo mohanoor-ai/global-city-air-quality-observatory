@@ -7,7 +7,7 @@
 - `uv` for the development workflow, or `pip` with `requirements.txt` as an optional installation path
 - Google Cloud SDK (`gcloud`, `bq`)
 - Terraform (only if you want to provision cloud resources)
-- Airflow (only if you want to run DAGs locally)
+- Docker and Docker Compose (only if you want to run Airflow locally)
 
 ## Quick checks
 
@@ -29,6 +29,9 @@ For development:
 uv sync
 ```
 
+This installs the main project dependencies and dbt into the same local Python
+environment.
+
 If you prefer not to use `uv`:
 
 ```bash
@@ -37,9 +40,11 @@ source .venv-pip/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-## dbt environment
+## Runtime model
 
-This repo uses a separate dbt virtual environment at `.venv-dbt` for dbt commands.
+- One local Python environment is used for ingestion, Spark helpers, warehouse
+  loading, and dbt
+- Docker Compose is used only for local Airflow orchestration
 
 ## GCP authentication (recommended)
 
@@ -56,3 +61,6 @@ Then run:
 bash scripts/dbt_run.sh
 bash scripts/dbt_test.sh
 ```
+
+If you run Airflow from WSL with Docker Desktop, make sure WSL integration is
+enabled for this distro before using the Docker Compose targets.

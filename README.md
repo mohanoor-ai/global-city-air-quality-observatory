@@ -93,7 +93,7 @@ This repository demonstrates a complete batch analytics pipeline using the follo
 - `terraform/` - GCP infrastructure as code
 - `docs/` - project guide, architecture decisions, execution evidence, dashboard design
 - `tests/` - validation checks
-- `scripts/` - helper scripts for dbt execution and local Airflow startup
+- `scripts/` - helper scripts for dbt execution and repo utilities
 - `requirements.txt` - pip install snapshot generated from `uv.lock`
 
 ## End-to-end pipeline flow
@@ -113,7 +113,7 @@ Main execution files:
 - [spark/bronze_to_silver.py](spark/bronze_to_silver.py)
 - [spark/check_silver_data_quality.py](spark/check_silver_data_quality.py)
 - [warehouse/load_to_bigquery.py](warehouse/load_to_bigquery.py)
-- [airflow/global_city_air_quality_observatory_dag.py](airflow/global_city_air_quality_observatory_dag.py)
+- [airflow/dags/global_city_air_quality_observatory_dag.py](airflow/dags/global_city_air_quality_observatory_dag.py)
 
 Spark is the official Bronze to Silver transformation engine in this repository.
 
@@ -124,7 +124,12 @@ The repository contains Airflow DAGs for:
 - backfill runs
 - daily runs
 
-For local DAG runs, Airflow should be installed in a dedicated environment. It is not installed by `uv sync` for the main project environment.
+For local DAG runs, Airflow uses the official Docker Compose stack committed at
+`docker-compose.yaml`.
+
+The compose stack builds a project-specific Airflow image from
+`airflow/Dockerfile`, so the containers include the runtime tools this pipeline
+needs such as Java, Google Cloud SDK, Python dependencies, and dbt.
 
 The exact DAG task flow is:
 
@@ -210,8 +215,12 @@ Dashboard preview:
 - `uv` for the development workflow, or `pip` with `requirements.txt` as an optional installation path
 - Google Cloud credentials
 - Terraform
-- dedicated Airflow environment for local DAG runs
-- dbt environment
+- Docker and Docker Compose for local Airflow orchestration
+
+### Environment model
+
+- One local Python environment powers manual pipeline commands and dbt
+- Docker Compose runs Airflow separately for orchestration
 
 ### Setup
 
@@ -220,6 +229,9 @@ For development, keep using `uv`:
 ```bash
 uv sync
 ```
+
+This installs the project dependencies for ingestion, Spark helpers, warehouse
+loading, and dbt into the same local Python environment.
 
 If you prefer not to use `uv`:
 
@@ -231,14 +243,20 @@ python -m pip install -r requirements.txt
 
 Configure environment variables and Google Cloud credentials, then provision infrastructure.
 
-If you want to run Airflow locally, install it separately and use the helper script:
+If you want to run Airflow locally, copy `.env.example` to `.env`, update the
+GCP values and credential path, then start the official compose stack:
 
 ```bash
-uv venv .venv-airflow --python 3.11
-source .venv-airflow/bin/activate
-uv pip install apache-airflow
-bash scripts/airflow_standalone.sh
+cp .env.example .env
+make airflow-init
+make airflow-start
 ```
+
+The first Docker-based Airflow run may take several minutes because it builds
+the custom image before starting the services.
+
+If you are using WSL with Docker Desktop, enable WSL integration for this
+distro so `docker compose` is available from the shell that runs the Makefile.
 
 ```bash
 cd terraform

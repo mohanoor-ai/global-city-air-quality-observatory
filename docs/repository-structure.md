@@ -10,11 +10,14 @@ The goal is to keep the project easy to understand, maintain, and reproduce.
 
 ```text
 global-city-air-quality-observatory/
+├── .env.example
 ├── README.md
 ├── airflow/
 ├── dbt/
+├── docker-compose.yaml
 ├── docs/
 ├── ingestion/
+├── Makefile
 ├── main.py
 ├── runbook.md
 ├── spark/
@@ -41,7 +44,9 @@ warehouse/
   load_to_bigquery.py            # Partitioned and clustered BigQuery load
 
 airflow/
-  global_city_air_quality_observatory_dag.py    # Backfill and daily orchestration DAGs
+  Dockerfile
+  dags/
+    global_city_air_quality_observatory_dag.py  # Backfill and daily orchestration DAGs
 
 dbt/air_quality_project/models/marts/reporting/
   mart_pm25_city_daily.sql
@@ -53,5 +58,6 @@ dbt/air_quality_project/models/marts/reporting/
 scripts/
   dbt_run.sh                     # wrapper for dbt run
   dbt_test.sh                    # wrapper for dbt test
+  airflow_standalone.sh          # compatibility shim that starts Docker Compose Airflow
   compare_city_pollution.py      # quick city-vs-city pollution comparison
 ```

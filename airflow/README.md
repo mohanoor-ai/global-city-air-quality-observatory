@@ -16,5 +16,7 @@ The only difference is ingestion mode:
 
 Notes:
 
-- DAG file: `airflow/global_city_air_quality_observatory_dag.py`
-- project root in DAG: resolved dynamically from the DAG file location
+- DAG file: `airflow/dags/global_city_air_quality_observatory_dag.py`
+- custom image build: `airflow/Dockerfile`
+- project root in DAG: resolved from `PIPELINE_PROJECT_ROOT` when set, otherwise auto-detected from the repo layout
+- local orchestration stack: `docker-compose.yaml` plus the `airflow-init` and `airflow-start` Makefile targets

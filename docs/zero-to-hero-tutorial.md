@@ -110,7 +110,7 @@ The main entry files are:
 
 - [main.py](../main.py)
 - [runbook.md](../runbook.md)
-- [airflow/global_city_air_quality_observatory_dag.py](../airflow/global_city_air_quality_observatory_dag.py)
+- [airflow/dags/global_city_air_quality_observatory_dag.py](../airflow/dags/global_city_air_quality_observatory_dag.py)
 
 ## 6. Local Setup From Scratch
 
@@ -124,6 +124,7 @@ You need:
 - `gcloud`
 - `bq`
 - Terraform
+- Docker and Docker Compose if you want to run Airflow locally
 
 ### Step 2: Install Python dependencies
 
@@ -132,6 +133,9 @@ For development:
 ```bash
 uv sync
 ```
+
+This installs the manual pipeline dependencies and dbt into the same local
+Python environment.
 
 If you prefer not to use `uv`:
 
@@ -303,7 +307,7 @@ Expected outcome:
 
 Airflow is the orchestration layer for the end-to-end batch flow.
 
-The main DAG file is [airflow/global_city_air_quality_observatory_dag.py](../airflow/global_city_air_quality_observatory_dag.py).
+The main DAG file is [airflow/dags/global_city_air_quality_observatory_dag.py](../airflow/dags/global_city_air_quality_observatory_dag.py).
 
 The task flow is:
 
@@ -450,7 +454,7 @@ Check:
 
 Check:
 
-- `.venv-dbt` exists
+- `uv sync` has been run, or the active Python environment has `dbt-bigquery`
 - the dbt profile points to the correct GCP project and dataset
 - the warehouse tables were successfully loaded
 

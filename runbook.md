@@ -8,8 +8,12 @@
 - `gcloud`
 - `bq`
 - Terraform
-- an available Airflow environment
-- a dbt environment at `.venv-dbt`
+- Docker and Docker Compose for local Airflow orchestration
+
+## Environment model
+
+- One local Python environment runs the manual pipeline commands and dbt
+- Docker Compose runs Airflow for local orchestration
 
 ## Setup
 
@@ -20,6 +24,9 @@ For development, keep using `uv`:
 ```bash
 uv sync
 ```
+
+This installs the project dependencies and dbt into the same local Python
+environment.
 
 If you prefer not to use `uv`:
 
@@ -48,18 +55,28 @@ cd ..
 
 4. Confirm or update the dbt profile in `dbt/air_quality_project/profiles.yml.example` and create your working profile.
 
-5. Initialize Airflow if you want to run the DAG locally. Airflow is not installed by `uv sync`, so use a dedicated environment for it.
+5. Initialize Airflow if you want to run the DAG locally. The repo includes the
+official Apache Airflow Docker Compose stack in `docker-compose.yaml`.
 
 ```bash
-uv venv .venv-airflow --python 3.11
-source .venv-airflow/bin/activate
-uv pip install apache-airflow
-bash scripts/airflow_standalone.sh
+cp .env.example .env
+# edit .env with your real GCP project, bucket, dataset, and absolute key path
+make airflow-init
+make airflow-start
 ```
+
+This starts the official Airflow services and UI with the repository mounted
+into the containers. The compose stack builds a custom Airflow image from
+`airflow/Dockerfile` so the DAG tasks have Java, Google Cloud SDK, Python
+dependencies, and dbt available inside the containers.
+
+If you are using WSL with Docker Desktop, enable WSL integration for this
+distro first. Otherwise `docker compose` may not be accessible from the shell
+that runs the Makefile targets.
 
 ## Pipeline Flow
 
-The Airflow DAG in [airflow/global_city_air_quality_observatory_dag.py](airflow/global_city_air_quality_observatory_dag.py) orchestrates this exact flow:
+The Airflow DAG in [airflow/dags/global_city_air_quality_observatory_dag.py](airflow/dags/global_city_air_quality_observatory_dag.py) orchestrates this exact flow:
 
 1. `show_scope`
 2. `download_data`
@@ -176,7 +193,7 @@ The repo includes two DAG entry points:
 - `global_city_air_quality_backfill`
 - `global_city_air_quality_daily`
 
-Both use [airflow/global_city_air_quality_observatory_dag.py](airflow/global_city_air_quality_observatory_dag.py).
+Both use [airflow/dags/global_city_air_quality_observatory_dag.py](airflow/dags/global_city_air_quality_observatory_dag.py).
 
 ## Validation
 

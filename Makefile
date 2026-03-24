@@ -1,8 +1,8 @@
-.PHONY: setup infra infra-destroy run run-ingest run-transform run-load run-dbt airflow-start test clean
+.PHONY: setup infra infra-destroy run run-ingest run-transform run-load run-dbt check-docker airflow-init airflow-start airflow-stop airflow-logs test clean
 
 setup:
 	uv sync
-	@echo "Python dependencies installed"
+	@echo "Python and dbt dependencies installed"
 
 infra:
 	cd terraform && terraform init && terraform apply -var-file=terraform.tfvars -auto-approve
@@ -30,10 +30,27 @@ run-dbt:
 	bash scripts/dbt_test.sh
 	uv run python main.py verify-quality-report
 
-airflow-start:
-	uv venv .venv-airflow --python 3.11
-	.venv-airflow/bin/python -m pip install apache-airflow
-	PATH="$(CURDIR)/.venv-airflow/bin:$$PATH" bash scripts/airflow_standalone.sh
+check-docker:
+	@docker compose version >/dev/null 2>&1 || { \
+		echo "Docker Compose is not accessible from this shell."; \
+		echo "If you are using WSL, enable Docker Desktop WSL integration for this distro."; \
+		exit 1; \
+	}
+
+airflow-init: check-docker
+	@if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
+	@grep -q '^AIRFLOW_UID=' .env 2>/dev/null || echo "AIRFLOW_UID=$$(id -u)" >> .env
+	docker compose up airflow-init
+
+airflow-start: check-docker
+	docker compose up -d
+	@echo "Airflow UI available at http://localhost:8080"
+
+airflow-stop: check-docker
+	docker compose down
+
+airflow-logs: check-docker
+	docker compose logs -f airflow-apiserver
 
 test:
 	uv run python -m unittest -v tests/test_pipeline_checks.py

@@ -2,18 +2,24 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENV_FILE="$PROJECT_ROOT/.env"
 
-export AIRFLOW_HOME="${AIRFLOW_HOME:-$PROJECT_ROOT/.airflow}"
-export AIRFLOW__CORE__DAGS_FOLDER="${AIRFLOW__CORE__DAGS_FOLDER:-$PROJECT_ROOT/airflow}"
-export AIRFLOW__CORE__LOAD_EXAMPLES="${AIRFLOW__CORE__LOAD_EXAMPLES:-False}"
-
-if ! command -v airflow >/dev/null 2>&1; then
-  echo "[FAIL] airflow is not installed in the active environment." >&2
-  echo "[INFO] Create a dedicated Airflow environment, then rerun this script:" >&2
-  echo "  uv venv .venv-airflow --python 3.11" >&2
-  echo "  source .venv-airflow/bin/activate" >&2
-  echo "  uv pip install apache-airflow" >&2
+if ! command -v docker >/dev/null 2>&1; then
+  echo "[FAIL] docker is not installed or not on PATH." >&2
+  echo "[INFO] Local Airflow now runs via Docker Compose." >&2
   exit 1
 fi
 
-exec airflow standalone
+if [[ ! -f "$ENV_FILE" && -f "$PROJECT_ROOT/.env.example" ]]; then
+  cp "$PROJECT_ROOT/.env.example" "$ENV_FILE"
+fi
+
+if ! grep -q '^AIRFLOW_UID=' "$ENV_FILE" 2>/dev/null; then
+  echo "AIRFLOW_UID=$(id -u)" >> "$ENV_FILE"
+fi
+
+echo "[INFO] Local Airflow now runs via Docker Compose." >&2
+echo "[INFO] Starting services from docker-compose.yaml" >&2
+
+cd "$PROJECT_ROOT"
+exec docker compose up -d

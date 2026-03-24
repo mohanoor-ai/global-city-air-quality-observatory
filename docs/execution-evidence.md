@@ -14,6 +14,7 @@ Committed evidence files used in this document:
 - `dbt_test_output.png`
 - `load_to_bigquery.png`
 - `bigquery_tables.png`
+- `gcs_silver_staging.png`
 - `dashboard_overview.png`
 - `Global_City_Air_Quality_Observatory_Dashboard.pdf`
 
@@ -63,22 +64,23 @@ at `data/silver/air_quality_measurements` is copied to:
 
 That staged path is then used as the source for the `bq load` command.
 
-### GCS Silver staging evidence gap
+### GCS Silver bucket contents
 
-A committed GCS bucket screenshot is still missing from `docs/images/`. Capture
-it after the next authenticated load and save it as
-`docs/images/gcs_silver_staging.png`.
+![GCS Silver staging](images/gcs_silver_staging.png)
 
-Suggested command:
+The screenshot above was captured from:
 
 ```bash
-gcloud storage ls --long gs://<configured-bucket>/silver/air_quality_measurements/
+gcloud storage ls --long gs://aq-lake-moha/silver/air_quality_measurements/
 ```
 
-If you prefer `gsutil`, this also works:
+The listing confirms the staged Silver prefix exists and includes the
+`batch_date=2026-03-14/` partition path used for the warehouse load.
+
+For future captures, `gsutil` also works:
 
 ```bash
-gsutil ls -lh gs://<configured-bucket>/silver/air_quality_measurements/
+gsutil ls -lh gs://aq-lake-moha/silver/air_quality_measurements/
 ```
 
 ## Data quality numbers

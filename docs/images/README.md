@@ -11,6 +11,7 @@ Current tracked evidence assets:
 - `silver_quality_report.png`
 - `load_to_bigquery.png`
 - `bigquery_tables.png`
+- `gcs_silver_staging.png`
 - `dbt_run_output.png`
 - `dbt_test_output.png`
 - `dashboard_overview.png`
@@ -24,6 +25,7 @@ Current evidence filenames:
 - `silver_quality_report.png`
 - `load_to_bigquery.png`
 - `bigquery_tables.png`
+- `gcs_silver_staging.png`
 - `dbt_run_output.png`
 - `dbt_test_output.png`
 - `dashboard_overview.png`

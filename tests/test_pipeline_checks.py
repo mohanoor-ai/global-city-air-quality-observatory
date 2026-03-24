@@ -7,12 +7,10 @@ from unittest.mock import patch
 
 import pandas as pd
 
-import main as project_cli
 from ingestion import city_scope
 from ingestion import download_air_quality_data as ingest
 from spark import bronze_to_silver as spark_transform
 from spark import check_silver_data_quality as dq
-from scripts import compare_city_pollution as compare
 
 
 class TestSparkHelpers(unittest.TestCase):
@@ -182,7 +180,7 @@ class TestIngestion(unittest.TestCase):
             city_scope.validate_scope_rows([("London", "GB")])
 
 
-class TestProjectCli(unittest.TestCase):
+class TestIngestionVerification(unittest.TestCase):
     def test_verify_bronze_fails_when_a_configured_location_has_no_raw_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             targets_file = Path(tmp) / "location_targets.csv"
@@ -203,63 +201,14 @@ class TestProjectCli(unittest.TestCase):
             metadata_file.write_text(scope_csv, encoding="utf-8")
             location_dir.mkdir(parents=True, exist_ok=True)
             (location_dir / "location-159-20260301.csv.gz").write_text("sample", encoding="utf-8")
-
-            with patch.object(project_cli, "TARGETS_FILE", targets_file), patch.object(project_cli, "BRONZE_DIR", bronze_dir):
-                exit_code = project_cli.verify_bronze()
+            targets = ingest.load_targets(targets_file)
+            exit_code = ingest.verify_bronze(
+                targets,
+                bronze_dir=bronze_dir,
+                metadata_file=metadata_file,
+            )
 
             self.assertEqual(exit_code, 1)
-
-
-class TestCityComparisonScript(unittest.TestCase):
-    def test_city_stats_returns_expected_values(self) -> None:
-        df = pd.DataFrame(
-            [
-                {
-                    "measurement_datetime": "2024-01-01T00:00:00+00:00",
-                    "city": "Delhi",
-                    "pollutant": "pm25",
-                    "measurement_value": 100.0,
-                },
-                {
-                    "measurement_datetime": "2024-01-02T00:00:00+00:00",
-                    "city": "Delhi",
-                    "pollutant": "pm25",
-                    "measurement_value": 80.0,
-                },
-                {
-                    "measurement_datetime": "2024-01-01T00:00:00+00:00",
-                    "city": "London",
-                    "pollutant": "pm25",
-                    "measurement_value": 20.0,
-                },
-            ]
-        )
-
-        stats = compare.city_stats(df, city="Delhi", pollutant="pm25")
-
-        self.assertEqual(stats["measurement_count"], 2)
-        self.assertAlmostEqual(stats["avg_value"], 90.0)
-        self.assertEqual(stats["max_value"], 100.0)
-        self.assertIsNotNone(stats["date_min"])
-        self.assertIsNotNone(stats["date_max"])
-
-    def test_city_stats_handles_missing_city(self) -> None:
-        df = pd.DataFrame(
-            [
-                {
-                    "measurement_datetime": "2024-01-01T00:00:00+00:00",
-                    "city": "Delhi",
-                    "pollutant": "pm25",
-                    "measurement_value": 100.0,
-                }
-            ]
-        )
-
-        stats = compare.city_stats(df, city="Cairo", pollutant="pm25")
-
-        self.assertEqual(stats["measurement_count"], 0)
-        self.assertIsNone(stats["avg_value"])
-        self.assertIsNone(stats["max_value"])
 
 
 if __name__ == "__main__":

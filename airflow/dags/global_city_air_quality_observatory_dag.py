@@ -1,4 +1,4 @@
-"""Airflow DAGs for the end-to-end Global City Air Quality Observatory batch flow."""
+"""Airflow DAGs for the Global City Air Quality Observatory batch flow."""
 
 from __future__ import annotations
 
@@ -15,15 +15,12 @@ def resolve_project_root() -> str:
     if configured_root:
         return configured_root
 
-    current_file = Path(__file__).resolve()
-    for parent in current_file.parents:
-        if (parent / "main.py").exists():
-            return str(parent)
-
-    return str(current_file.parents[1])
+    return str(Path(__file__).resolve().parents[2])
 
 
 PROJECT_ROOT = resolve_project_root()
+DBT_PROJECT_ROOT = f"{PROJECT_ROOT}/dbt/air_quality_project"
+TFVARS_FILE = f"{PROJECT_ROOT}/terraform/terraform.tfvars"
 
 default_args = {
     "owner": "global-city-air-quality-observatory",
@@ -33,10 +30,21 @@ default_args = {
 }
 
 
+def dbt_command(command: str) -> str:
+    return (
+        f"cd {DBT_PROJECT_ROOT} && "
+        f"export DBT_PROFILES_DIR={DBT_PROJECT_ROOT} && "
+        f"export PROJECT_ID=${{PROJECT_ID:-$(sed -n 's/^project_id[[:space:]]*=[[:space:]]*\"\\(.*\\)\"/\\1/p' {TFVARS_FILE} | head -n 1)}} && "
+        f"export BIGQUERY_LOCATION=${{BIGQUERY_LOCATION:-$(sed -n 's/^bigquery_location[[:space:]]*=[[:space:]]*\"\\(.*\\)\"/\\1/p' {TFVARS_FILE} | head -n 1)}} && "
+        "export DBT_DATASET=${DBT_DATASET:-air_quality_dbt} && "
+        f"dbt {command} --project-dir . --profiles-dir ."
+    )
+
+
 def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
     show_scope = BashOperator(
         task_id="show_scope",
-        bash_command=f"cd {PROJECT_ROOT} && python main.py show-scope",
+        bash_command=f"cd {PROJECT_ROOT} && python ingestion/download_air_quality_data.py --show-scope",
         dag=dag,
     )
 
@@ -51,7 +59,7 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
 
     verify_bronze = BashOperator(
         task_id="verify_bronze",
-        bash_command=f"cd {PROJECT_ROOT} && python main.py verify-bronze",
+        bash_command=f"cd {PROJECT_ROOT} && python ingestion/download_air_quality_data.py --verify-bronze",
         dag=dag,
     )
 
@@ -79,17 +87,19 @@ def add_pipeline_tasks(dag: DAG, ingestion_mode: str) -> None:
 
     dbt_run = BashOperator(
         task_id="dbt_run",
-        bash_command=f"cd {PROJECT_ROOT} && bash scripts/dbt_run.sh ",
+        bash_command=dbt_command("run"),
+        dag=dag,
     )
 
     dbt_test = BashOperator(
         task_id="dbt_test",
-        bash_command=f"cd {PROJECT_ROOT} && bash scripts/dbt_test.sh ",
+        bash_command=dbt_command("test"),
+        dag=dag,
     )
 
     verify_quality_report = BashOperator(
         task_id="verify_quality_report",
-        bash_command=f"cd {PROJECT_ROOT} && python main.py verify-quality-report",
+        bash_command=f"cd {PROJECT_ROOT} && python spark/check_silver_data_quality.py --verify-report",
         dag=dag,
     )
 

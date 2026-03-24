@@ -1,4 +1,4 @@
-"""Run data quality checks against the Spark-written Silver parquet dataset."""
+"""Run data quality checks against the Silver parquet dataset."""
 
 from __future__ import annotations
 
@@ -43,6 +43,11 @@ def parse_args() -> Namespace:
     parser = ArgumentParser()
     parser.add_argument("--silver-dir", default=str(SILVER_DIR))
     parser.add_argument("--report-path", default=str(REPORT_PATH))
+    parser.add_argument(
+        "--verify-report",
+        action="store_true",
+        help="Check an existing quality report instead of recomputing it.",
+    )
     return parser.parse_args()
 
 
@@ -53,10 +58,27 @@ def load_dataset(path: Path) -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
+def verify_report(report_path: Path) -> int:
+    if not report_path.exists():
+        print(f"[FAIL] Missing quality report: {report_path}")
+        return 1
+
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    print(json.dumps(report, indent=2))
+    if str(report.get("status", "")).lower() != "pass":
+        print("[FAIL] Silver data quality report is not in pass state.")
+        return 1
+
+    print("[PASS] Silver data quality report exists and passed.")
+    return 0
+
+
 def main() -> int:
     args = parse_args()
     silver_dir = Path(args.silver_dir)
     report_path = Path(args.report_path)
+    if args.verify_report:
+        return verify_report(report_path)
     errors: list[str] = []
 
     try:

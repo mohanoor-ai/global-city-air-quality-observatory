@@ -1,8 +1,9 @@
 .PHONY: setup infra infra-destroy run run-ingest run-transform run-load run-dbt check-docker airflow-init airflow-start airflow-stop airflow-logs test clean
 
 setup:
-	uv sync
-	@echo "Python and dbt dependencies installed"
+	python -m venv .venv
+	.venv/bin/pip install -r requirements.txt
+	@echo "Python and dbt dependencies installed in .venv"
 
 infra:
 	cd terraform && terraform init && terraform apply -var-file=terraform.tfvars -auto-approve
@@ -14,21 +15,31 @@ infra-destroy:
 run: run-ingest run-transform run-load run-dbt
 
 run-ingest:
-	uv run python main.py show-scope
-	uv run python ingestion/download_air_quality_data.py --mode backfill
-	uv run python main.py verify-bronze
+	.venv/bin/python ingestion/download_air_quality_data.py --show-scope
+	.venv/bin/python ingestion/download_air_quality_data.py --mode backfill
+	.venv/bin/python ingestion/download_air_quality_data.py --verify-bronze
 
 run-transform:
-	uv run python spark/bronze_to_silver.py --write-mode overwrite
-	uv run python spark/check_silver_data_quality.py
+	.venv/bin/python spark/bronze_to_silver.py --write-mode overwrite
+	.venv/bin/python spark/check_silver_data_quality.py
 
 run-load:
-	uv run python warehouse/load_to_bigquery.py
+	.venv/bin/python warehouse/load_to_bigquery.py
 
 run-dbt:
-	bash scripts/dbt_run.sh
-	bash scripts/dbt_test.sh
-	uv run python main.py verify-quality-report
+	cd dbt/air_quality_project && \
+	DBT_PROFILES_DIR=$$(pwd) \
+	PROJECT_ID=$${PROJECT_ID:-$$(sed -n 's/^project_id[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' ../../terraform/terraform.tfvars | head -n 1)} \
+	BIGQUERY_LOCATION=$${BIGQUERY_LOCATION:-$$(sed -n 's/^bigquery_location[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' ../../terraform/terraform.tfvars | head -n 1)} \
+	DBT_DATASET=$${DBT_DATASET:-air_quality_dbt} \
+	../../.venv/bin/dbt run --project-dir . --profiles-dir .
+	cd dbt/air_quality_project && \
+	DBT_PROFILES_DIR=$$(pwd) \
+	PROJECT_ID=$${PROJECT_ID:-$$(sed -n 's/^project_id[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' ../../terraform/terraform.tfvars | head -n 1)} \
+	BIGQUERY_LOCATION=$${BIGQUERY_LOCATION:-$$(sed -n 's/^bigquery_location[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' ../../terraform/terraform.tfvars | head -n 1)} \
+	DBT_DATASET=$${DBT_DATASET:-air_quality_dbt} \
+	../../.venv/bin/dbt test --project-dir . --profiles-dir .
+	.venv/bin/python spark/check_silver_data_quality.py --verify-report
 
 check-docker:
 	@docker compose version >/dev/null 2>&1 || { \
@@ -53,7 +64,7 @@ airflow-logs: check-docker
 	docker compose logs -f airflow-apiserver
 
 test:
-	uv run python -m unittest -v tests/test_pipeline_checks.py
+	.venv/bin/python -m unittest -v tests/test_pipeline_checks.py
 
 clean:
 	rm -rf data/bronze/* data/silver/* data/quality/*

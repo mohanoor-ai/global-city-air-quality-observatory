@@ -1,6 +1,7 @@
 # Execution evidence
 
-This document provides proof that the Global City Air Quality Observatory pipeline ran successfully across orchestration, transformation, warehouse loading, and visualization layers.
+This document collects the committed screenshots and proof-of-run outputs for
+the project.
 
 All proof-of-run assets referenced below are committed in `docs/images/`.
 
@@ -85,8 +86,8 @@ gsutil ls -lh gs://aq-lake-moha/silver/air_quality_measurements/
 
 ## Data quality numbers
 
-The latest local Silver quality report available in this workspace showed a
-passing run, and the values are copied below for reviewer convenience:
+The most recent saved Silver quality report used for the project evidence
+showed a passing run, and the values are copied below for reviewer convenience:
 
 ```json
 {
@@ -118,8 +119,7 @@ passing run, and the values are copied below for reviewer convenience:
 }
 ```
 
-Supplementary row distribution from the latest local Silver run summary in this
-workspace:
+Supplementary row distribution from the latest saved Silver run summary:
 
 ```json
 {
@@ -139,11 +139,7 @@ workspace:
 
 ## dbt test summary
 
-The committed dbt artifacts under `dbt/air_quality_project/` show a passing test
-run generated on `2026-03-14T22:42:36.988218Z`.
-
-Summary from `dbt/air_quality_project/logs/dbt.log` and
-`dbt/air_quality_project/target/run_results.json`:
+The committed dbt screenshots show a passing test run. Summary from that run:
 
 ```text
 Finished running 25 data tests in 0 hours 0 minutes and 6.64 seconds.

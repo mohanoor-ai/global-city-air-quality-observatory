@@ -1,39 +1,18 @@
 # Global City Air Quality Observatory
 
-Batch data engineering project comparing air pollution trends and pollutant patterns across London, New York, Delhi, Beijing, and Berlin using GCP, Airflow, Spark, BigQuery, dbt, and Looker Studio.
-
-## Quick links
-
-- Reviewer guide: `docs/review-guide.md`
-- Architecture diagram: `docs/images/architecture_diagram.svg`
-- Runbook: `runbook.md`
-- Project guide: `docs/project-guide.md`
-- Proof of run: `docs/execution-evidence.md`
-- Dashboard documentation: `docs/dashboard-design.md`
-- Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
+This project compares air pollution trends and pollutant patterns across
+London, New York, Delhi, Beijing, and Berlin.
 
 ## Problem Statement
 
-Air quality is a real public-health and policy problem because pollution levels
-change across cities, seasons, and pollutant types. City governments, analysts,
-and the public need a clear way to compare trends over time, spot worsening
-pollution patterns, and identify which pollutants are driving unhealthy
-conditions in different urban environments.
+Air quality affects public health, transport, and city policy, but the patterns
+are different from city to city. This project builds a batch pipeline that
+pulls OpenAQ archive data, prepares it for analysis, and shows cross-city
+trends in a dashboard.
 
-This project turns that real-world need into a focused analytics question:
+## Scope and Cities
 
-**How do pollution trends and pollutant patterns differ across five major global cities over time?**
-
-It is designed as an end-to-end batch data engineering project that makes that
-question easy to inspect by showing:
-
-1. where the data comes from
-2. how it lands in the data lake
-3. how it moves into the warehouse
-4. how it is transformed into analytical models
-5. how it is visualized for comparison
-
-The fixed city scope used throughout the repository is:
+The project is intentionally limited to five cities:
 
 - London
 - New York
@@ -41,216 +20,116 @@ The fixed city scope used throughout the repository is:
 - Beijing
 - Berlin
 
-## Why these five cities
+The fixed scope is stored in `ingestion/location_targets.csv`.
 
-Air pollution is a meaningful cross-city comparison problem because the same pollutants can behave differently across places, seasons, and monitoring environments.
-
-This project uses a fixed five-city scope to stay focused, clear, and reproducible. The goal is not global ranking. The goal is a consistent five-city comparison built as an end-to-end batch data engineering project.
-
-## Data source and scope
-
-The dataset comes from OpenAQ archive/source data and is intentionally restricted to a fixed five-city comparison for consistency and reproducibility.
-
-This project is intentionally limited to these five cities only:
-
-- London
-- New York
-- Delhi
-- Beijing
-- Berlin
-
-The single source of truth for project scope is `ingestion/location_targets.csv`.
-
-## Architecture
+## Architecture Summary
 
 ```text
-OpenAQ source data
--> Local Bronze landing in data/bronze
--> Spark Bronze to Silver transformation
--> Silver staged to GCS for BigQuery loading
--> BigQuery warehouse loading
--> dbt analytical marts
+OpenAQ archive
+-> Bronze files in data/bronze
+-> Spark Bronze to Silver parquet
+-> Silver staged to GCS
+-> BigQuery warehouse tables
+-> dbt marts
 -> Looker Studio dashboard
 ```
 
-Architecture diagram: [docs/images/architecture_diagram.svg](docs/images/architecture_diagram.svg)
+## Tech Stack
 
-## What this project demonstrates
+- Airflow for orchestration
+- Terraform for GCP infrastructure
+- Python and boto3 for ingestion
+- Spark for Bronze to Silver transformation
+- BigQuery for the warehouse
+- dbt for analytical marts
+- Looker Studio for the final dashboard
+- Docker Compose for local Airflow
 
-This repository demonstrates a complete batch analytics pipeline using the following tools and platforms:
+## Pipeline Flow
 
-- Google Cloud Platform
-- Terraform
-- Apache Airflow
-- Apache Spark
-- Google Cloud Storage
-- BigQuery
-- dbt
-- Looker Studio
-- uv
+The official runtime path is the Airflow DAG in
+`airflow/dags/global_city_air_quality_observatory_dag.py`.
 
-## Repository structure
+The DAG runs this flow:
 
-- `ingestion/` - source download, city scope, Bronze landing
-- `spark/` - Bronze to Silver transformation and Silver quality checks
-- `warehouse/` - BigQuery load logic
-- `dbt/` - staging models and analytical marts
-- `airflow/` - orchestration DAGs for backfill and daily runs
-- `terraform/` - GCP infrastructure as code
-- `docs/` - project guide, architecture decisions, execution evidence, dashboard design
-- `tests/` - validation checks
-- `scripts/` - helper scripts for dbt execution and repo utilities
-- `requirements.txt` - pip install snapshot generated from `uv.lock`
+1. show the configured city scope
+2. download OpenAQ archive files to Bronze
+3. verify Bronze files exist for every configured city
+4. transform Bronze to Silver with Spark
+5. run Silver data quality checks
+6. load Silver data to BigQuery
+7. build dbt marts
+8. run dbt tests
+9. verify the saved quality report
 
-## End-to-end pipeline flow
+## Repository Structure
 
-1. Download raw OpenAQ archive data for the five configured cities
-2. Land raw files in the Bronze layer
-3. Transform Bronze data into Silver parquet datasets using Spark
-4. Run Silver data quality checks
-5. Load curated warehouse data into BigQuery
-6. Build reporting marts with dbt
-7. Visualize five-city insights in Looker Studio
-
-Main execution files:
-
-- [main.py](main.py)
-- [ingestion/download_air_quality_data.py](ingestion/download_air_quality_data.py)
-- [spark/bronze_to_silver.py](spark/bronze_to_silver.py)
-- [spark/check_silver_data_quality.py](spark/check_silver_data_quality.py)
-- [warehouse/load_to_bigquery.py](warehouse/load_to_bigquery.py)
-- [airflow/dags/global_city_air_quality_observatory_dag.py](airflow/dags/global_city_air_quality_observatory_dag.py)
-
-Spark is the official Bronze to Silver transformation engine in this repository.
-
-## Airflow orchestration
-
-The repository contains Airflow DAGs for:
-
-- backfill runs
-- daily runs
-
-For local DAG runs, Airflow uses the official Docker Compose stack committed at
-`docker-compose.yaml`.
-
-The compose stack builds a project-specific Airflow image from
-`airflow/Dockerfile`, so the containers include the runtime tools this pipeline
-needs such as Java, Google Cloud SDK, Python dependencies, and dbt.
-
-The exact DAG task flow is:
-
-- `show_scope`
-- `download_data`
-- `verify_bronze`
-- `bronze_to_silver`
-- `silver_data_quality`
-- `load_bigquery`
-- `dbt_run`
-- `dbt_test`
-- `verify_quality_report`
-
-This keeps the orchestration easy to inspect from source download through warehouse loading, dbt transformation, and final validation.
-
-## Warehouse loading and modeling
-
-The warehouse layer is implemented in BigQuery and is designed for analytical querying and dashboard use.
-
-- the fact table is partitioned by date using `measurement_date`
-- the fact table is clustered by `city` and `pollutant`
-- supporting dimensions make reporting and filtering easier
-- dbt builds analytical marts from warehouse data for dashboard use
-
-### BigQuery fact table schema
-
-| Column | Type | Notes |
-|---|---|---|
-| `city` | STRING | One of the five scoped cities |
-| `country` | STRING | Two-letter country code from the scoped source |
-| `location_id` | INT64 | OpenAQ location identifier |
-| `location_name` | STRING | Human-readable monitoring location name |
-| `sensor_id` | INT64 | Sensor identifier when available |
-| `pollutant` | STRING | Lower-cased pollutant code such as `pm25`, `pm10`, `no2`, `co`, `o3` |
-| `measurement_value` | FLOAT64 | Standardized measurement value |
-| `measurement_unit` | STRING | Measurement unit from the source |
-| `measurement_datetime` | TIMESTAMP | Source event timestamp |
-| `measurement_date` | DATE | Partition key |
-| `latitude` | FLOAT64 | Source latitude when available |
-| `longitude` | FLOAT64 | Source longitude when available |
-| `batch_date` | DATE | Batch partition carried from the Silver layer |
-| `source_file` | STRING | Bronze source filename for lineage |
-
-Supporting dimension tables: `dim_city`, `dim_pollutant`
-
-## Dashboard story
-
-The dashboard is a focused five-city comparison dashboard for:
-
-- London
-- New York
-- Delhi
-- Beijing
-- Berlin
-
-It focuses on:
-
-- city trend over time
-- pollutant distribution by city
-- cross-city comparison
-- extreme pollution events within the five selected cities
-
-Dashboard resources:
-
-- Documentation: `docs/dashboard-design.md`
-- Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
-- Evidence screenshots: `docs/execution-evidence.md`
-- PDF export: `docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf`
-
-If the live dashboard is unavailable or still restricted by sharing settings,
-use the committed PDF export as the fallback review artifact.
-
-Dashboard preview:
-
-![Global City Air Quality Observatory dashboard preview](docs/images/dashboard_overview.png)
-
-## How to run from zero
-
-### Prerequisites
-
-- Python `3.11` to `3.13`
-- Java 17
-- `uv` for the development workflow, or `pip` with `requirements.txt` as an optional installation path
-- Google Cloud credentials
-- Terraform
-- Docker and Docker Compose for local Airflow orchestration
-
-### Environment model
-
-- One local Python environment powers manual pipeline commands and dbt
-- Docker Compose runs Airflow separately for orchestration
-
-### Setup
-
-For development, keep using `uv`:
-
-```bash
-uv sync
+```text
+.
+├── README.md
+├── requirements.txt
+├── .env.example
+├── docker-compose.yml
+├── Makefile
+├── airflow/
+│   ├── Dockerfile
+│   └── dags/global_city_air_quality_observatory_dag.py
+├── ingestion/
+│   ├── city_scope.py
+│   ├── download_air_quality_data.py
+│   └── location_targets.csv
+├── spark/
+│   ├── bronze_to_silver.py
+│   └── check_silver_data_quality.py
+├── warehouse/load_to_bigquery.py
+├── dbt/air_quality_project/
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── versions.tf
+│   └── terraform.tfvars.example
+├── docs/
+│   ├── review-guide.md
+│   ├── execution-evidence.md
+│   └── images/
+└── tests/test_pipeline_checks.py
 ```
 
-This installs the project dependencies for ingestion, Spark helpers, warehouse
-loading, and dbt into the same local Python environment.
+## How to Run
 
-If you prefer not to use `uv`:
+1. Create a local environment and install dependencies.
 
 ```bash
-python -m venv .venv-pip
-source .venv-pip/bin/activate
-python -m pip install -r requirements.txt
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Configure environment variables and Google Cloud credentials, then provision infrastructure.
+2. Authenticate to GCP.
 
-If you want to run Airflow locally, copy `.env.example` to `.env`, update the
-GCP values and credential path, then start the official compose stack:
+```bash
+gcloud auth login
+gcloud auth application-default login
+```
+
+3. Create Terraform variables and provision infrastructure.
+
+```bash
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+cd terraform
+terraform init
+terraform apply -var-file=terraform.tfvars
+cd ..
+```
+
+4. For a manual end-to-end run from the repo root:
+
+```bash
+make run
+```
+
+5. For Airflow:
 
 ```bash
 cp .env.example .env
@@ -258,98 +137,54 @@ make airflow-init
 make airflow-start
 ```
 
-The first Docker-based Airflow run may take several minutes because it builds
-the custom image before starting the services.
+Airflow UI: `http://localhost:8080`
 
 If you are using WSL with Docker Desktop, enable WSL integration for this
-distro so `docker compose` is available from the shell that runs the Makefile.
+distro before running the Airflow targets.
 
-```bash
-cd terraform
-terraform init
-terraform plan -var-file=terraform.tfvars
-terraform apply -var-file=terraform.tfvars
-cd ..
-```
+## Outputs
 
-### Manual pipeline run
+Local outputs:
 
-If you installed dependencies with `requirements.txt` in an activated virtualenv, replace each `uv run python` command below with `python`.
+- `data/bronze/records/csv.gz/...`
+- `data/bronze/location_metadata.csv`
+- `data/silver/air_quality_measurements/`
+- `data/silver/latest_run_summary.json`
+- `data/quality/silver_dq_report.json`
 
-```bash
-uv run python main.py show-scope
-uv run python ingestion/download_air_quality_data.py --mode backfill
-uv run python main.py verify-bronze
-uv run python spark/bronze_to_silver.py --write-mode overwrite
-uv run python spark/check_silver_data_quality.py
-uv run python warehouse/load_to_bigquery.py
-bash scripts/dbt_run.sh
-bash scripts/dbt_test.sh
-uv run python main.py verify-quality-report
-```
+BigQuery tables:
 
-### Full run instructions
+- `air_quality_dw.fct_air_quality_measurements`
+- `air_quality_dw.dim_city`
+- `air_quality_dw.dim_pollutant`
 
-See `runbook.md` for setup details, Airflow startup, DAG execution, and validation steps.
+dbt marts:
 
-## Expected outputs
+- `mart_city_pollution_trends`
+- `mart_city_pollutant_distribution`
+- `mart_city_extreme_events`
+- `mart_city_comparison_summary`
+- `mart_pm25_city_daily`
 
-Successful runs should produce:
+Dashboard outputs:
 
-### Local outputs
+- live Looker Studio dashboard
+- committed dashboard screenshot
+- committed PDF export
 
-- Bronze raw files
-- Silver parquet datasets
-- Silver run summary
-- Silver data quality report
+## Proof and Evidence
 
-### Warehouse outputs
+- Reviewer guide: `docs/review-guide.md`
+- Execution evidence: `docs/execution-evidence.md`
 
-- curated BigQuery fact table
-- supporting BigQuery dimensions
-- dbt reporting marts
+## Dashboard
 
-### Documentation outputs
+- Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
+- PDF export: `docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf`
 
-- Airflow DAG evidence
-- dbt execution evidence
-- warehouse evidence
-- dashboard evidence
+## Why Partitioning, Clustering, and dbt Matter
 
-## Reviewer guide and evidence
-
-Project documentation and evidence are available in:
-
-- `docs/review-guide.md`
-- `docs/execution-evidence.md`
-- `docs/project-guide.md`
-
-Evidence included there:
-
-- Airflow DAG screenshot
-- Bronze ingestion screenshot
-- Silver quality report screenshot or JSON excerpt
-- BigQuery load screenshot
-- BigQuery tables screenshot
-- dbt run/test output screenshot
-- dashboard screenshot
-
-## Lessons learned
-
-Keeping the scope fixed to five cities made the project easier to explain, validate, and dashboard cleanly. Spark became the right choice once the Bronze to Silver step needed schema enforcement, metadata enrichment, deduplication, and repeatable parquet output. BigQuery partitioning and clustering mattered because the project constantly filters by date, city, and pollutant.
-
-## Architecture decisions
-
-- [docs/architecture-decisions.md](docs/architecture-decisions.md)
-
-## Project guide
-
-- [docs/project-guide.md](docs/project-guide.md)
-
-## Reviewer guide
-
-- [docs/review-guide.md](docs/review-guide.md)
-
-## Proof of run
-
-- [docs/execution-evidence.md](docs/execution-evidence.md)
+The fact table is partitioned by `measurement_date` and clustered by `city` and
+`pollutant` because the project constantly filters by time, city, and pollutant.
+dbt sits on top of that warehouse layer to build reviewer-friendly reporting
+tables instead of leaving all analysis at raw measurement grain.

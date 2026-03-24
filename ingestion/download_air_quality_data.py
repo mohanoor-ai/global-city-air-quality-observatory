@@ -1,9 +1,4 @@
-"""Download OpenAQ archive files into the Bronze layer.
-
-Modes:
-- backfill: last 2 full years + current year-to-date
-- daily: newest available file per configured location
-"""
+"""Download OpenAQ archive files into the Bronze layer."""
 
 from __future__ import annotations
 
@@ -78,7 +73,6 @@ def load_targets(path: Path) -> list[LocationTarget]:
 
 
 def write_metadata_file(targets: list[LocationTarget]) -> None:
-    """Store location metadata in Bronze for Silver enrichment."""
     METADATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     with METADATA_FILE.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=["location_id", "city", "country"])
@@ -129,7 +123,6 @@ def backfill_months(now: datetime) -> list[tuple[int, int]]:
 
 
 def run_backfill(targets: list[LocationTarget], overwrite: bool) -> tuple[int, int]:
-    """Download all files for last 2 full years + current year-to-date."""
     now = datetime.now(UTC)
     periods = backfill_months(now)
     scanned = 0
@@ -180,7 +173,6 @@ def run_backfill(targets: list[LocationTarget], overwrite: bool) -> tuple[int, i
 
 
 def run_daily(targets: list[LocationTarget], overwrite: bool) -> tuple[int, int]:
-    """Download one newest file per location target."""
     now = datetime.now(UTC)
     scanned = 0
     downloaded = 0
@@ -209,6 +201,58 @@ def run_daily(targets: list[LocationTarget], overwrite: bool) -> tuple[int, int]
     return scanned, downloaded
 
 
+def show_scope(targets: list[LocationTarget]) -> int:
+    print("Configured five-city scope:")
+    for target in targets:
+        print(f"- {target.city} ({target.country}) [location_id={target.location_id}]")
+    return 0
+
+
+def bronze_location_dir(location_id: str, bronze_dir: Path) -> Path:
+    return bronze_dir / "records" / "csv.gz" / f"locationid={location_id}"
+
+
+def verify_bronze(
+    targets: list[LocationTarget],
+    bronze_dir: Path = BRONZE_DIR,
+    metadata_file: Path = METADATA_FILE,
+) -> int:
+    bronze_files = sorted(bronze_dir.rglob("*.csv.gz"))
+    if not bronze_files:
+        print(f"[FAIL] No Bronze archive files found in {bronze_dir}")
+        return 1
+
+    if not metadata_file.exists():
+        print(f"[FAIL] Missing Bronze metadata file: {metadata_file}")
+        return 1
+
+    metadata_targets = load_targets(metadata_file)
+    expected_signature = {(item.location_id, item.city.casefold(), item.country) for item in targets}
+    actual_signature = {
+        (item.location_id, item.city.casefold(), item.country) for item in metadata_targets
+    }
+    if actual_signature != expected_signature:
+        print(
+            f"[FAIL] Bronze metadata file {metadata_file} does not match the configured scope."
+        )
+        return 1
+
+    missing_locations = [
+        f"{item.city} ({item.country}) [location_id={item.location_id}]"
+        for item in targets
+        if not any(bronze_location_dir(item.location_id, bronze_dir).rglob("*.csv.gz"))
+    ]
+    if missing_locations:
+        print("[FAIL] Bronze data is missing files for one or more configured locations:")
+        for item in missing_locations:
+            print(f"- {item}")
+        return 1
+
+    print(f"[PASS] Bronze files present: {len(bronze_files)}")
+    print(f"[INFO] Metadata file: {metadata_file}")
+    return 0
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -227,12 +271,29 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Redownload files even if already present in Bronze.",
     )
+    parser.add_argument(
+        "--show-scope",
+        action="store_true",
+        help="Print the configured five-city scope and exit.",
+    )
+    parser.add_argument(
+        "--verify-bronze",
+        action="store_true",
+        help="Check that Bronze files and metadata exist for every configured location.",
+    )
     return parser.parse_args()
 
 
-def main() -> None:
+def main() -> int:
     args = parse_args()
     targets = load_targets(Path(args.targets_file))
+
+    if args.show_scope:
+        return show_scope(targets)
+
+    if args.verify_bronze:
+        return verify_bronze(targets)
+
     write_metadata_file(targets)
 
     if args.mode == "backfill":
@@ -245,7 +306,8 @@ def main() -> None:
     print(f"[INFO] Files scanned: {scanned}")
     print(f"[INFO] Files downloaded: {downloaded}")
     print(f"[INFO] Metadata file: {METADATA_FILE}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

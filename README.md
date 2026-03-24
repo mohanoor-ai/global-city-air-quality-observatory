@@ -12,22 +12,28 @@ Batch data engineering project comparing air pollution trends and pollutant patt
 - Dashboard documentation: `docs/dashboard-design.md`
 - Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
 
-## Problem statement
+## Problem Statement
 
-This project answers a focused analytics question:
+Air quality is a real public-health and policy problem because pollution levels
+change across cities, seasons, and pollutant types. City governments, analysts,
+and the public need a clear way to compare trends over time, spot worsening
+pollution patterns, and identify which pollutants are driving unhealthy
+conditions in different urban environments.
+
+This project turns that real-world need into a focused analytics question:
 
 **How do pollution trends and pollutant patterns differ across five major global cities over time?**
 
-It is designed as an end-to-end batch data engineering project that clearly shows:
+It is designed as an end-to-end batch data engineering project that makes that
+question easy to inspect by showing:
 
 1. where the data comes from
 2. how it lands in the data lake
 3. how it moves into the warehouse
-4. how it is transformed
-5. how it is visualized
-6. how someone else can run it
+4. how it is transformed into analytical models
+5. how it is visualized for comparison
 
-This project compares:
+The fixed city scope used throughout the repository is:
 
 - London
 - New York

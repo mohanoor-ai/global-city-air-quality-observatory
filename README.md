@@ -4,6 +4,7 @@ Batch data engineering project comparing air pollution trends and pollutant patt
 
 ## Quick links
 
+- Reviewer guide: `docs/review-guide.md`
 - Architecture diagram: `docs/images/architecture_diagram.svg`
 - Runbook: `runbook.md`
 - Project guide: `docs/project-guide.md`
@@ -148,6 +149,27 @@ The warehouse layer is implemented in BigQuery and is designed for analytical qu
 - supporting dimensions make reporting and filtering easier
 - dbt builds analytical marts from warehouse data for dashboard use
 
+### BigQuery fact table schema
+
+| Column | Type | Notes |
+|---|---|---|
+| `city` | STRING | One of the five scoped cities |
+| `country` | STRING | Two-letter country code from the scoped source |
+| `location_id` | INT64 | OpenAQ location identifier |
+| `location_name` | STRING | Human-readable monitoring location name |
+| `sensor_id` | INT64 | Sensor identifier when available |
+| `pollutant` | STRING | Lower-cased pollutant code such as `pm25`, `pm10`, `no2`, `co`, `o3` |
+| `measurement_value` | FLOAT64 | Standardized measurement value |
+| `measurement_unit` | STRING | Measurement unit from the source |
+| `measurement_datetime` | TIMESTAMP | Source event timestamp |
+| `measurement_date` | DATE | Partition key |
+| `latitude` | FLOAT64 | Source latitude when available |
+| `longitude` | FLOAT64 | Source longitude when available |
+| `batch_date` | DATE | Batch partition carried from the Silver layer |
+| `source_file` | STRING | Bronze source filename for lineage |
+
+Supporting dimension tables: `dim_city`, `dim_pollutant`
+
 ## Dashboard story
 
 The dashboard is a focused five-city comparison dashboard for:
@@ -170,6 +192,10 @@ Dashboard resources:
 - Documentation: `docs/dashboard-design.md`
 - Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
 - Evidence screenshots: `docs/execution-evidence.md`
+- PDF export: `docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf`
+
+If the live dashboard is unavailable or still restricted by sharing settings,
+use the committed PDF export as the fallback review artifact.
 
 Dashboard preview:
 
@@ -266,10 +292,11 @@ Successful runs should produce:
 - warehouse evidence
 - dashboard evidence
 
-## Project guide and evidence
+## Reviewer guide and evidence
 
 Project documentation and evidence are available in:
 
+- `docs/review-guide.md`
 - `docs/execution-evidence.md`
 - `docs/project-guide.md`
 
@@ -294,6 +321,10 @@ Keeping the scope fixed to five cities made the project easier to explain, valid
 ## Project guide
 
 - [docs/project-guide.md](docs/project-guide.md)
+
+## Reviewer guide
+
+- [docs/review-guide.md](docs/review-guide.md)
 
 ## Proof of run
 

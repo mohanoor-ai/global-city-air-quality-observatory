@@ -53,6 +53,102 @@ The warehouse and analytical marts are materialized in BigQuery. Cloud-side evid
 ### BigQuery tables
 ![BigQuery tables](images/bigquery_tables.png)
 
+## GCS staging
+
+The warehouse loader stages the Silver parquet dataset in GCS before the
+BigQuery load step. In `warehouse/load_to_bigquery.py`, the local Silver dataset
+at `data/silver/air_quality_measurements` is copied to:
+
+`gs://<configured-bucket>/silver/air_quality_measurements`
+
+That staged path is then used as the source for the `bq load` command.
+
+### GCS Silver staging evidence gap
+
+A committed GCS bucket screenshot is still missing from `docs/images/`. Capture
+it after the next authenticated load and save it as
+`docs/images/gcs_silver_staging.png`.
+
+Suggested command:
+
+```bash
+gcloud storage ls --long gs://<configured-bucket>/silver/air_quality_measurements/
+```
+
+If you prefer `gsutil`, this also works:
+
+```bash
+gsutil ls -lh gs://<configured-bucket>/silver/air_quality_measurements/
+```
+
+## Data quality numbers
+
+The latest local Silver quality report available in this workspace showed a
+passing run, and the values are copied below for reviewer convenience:
+
+```json
+{
+  "status": "pass",
+  "silver_dir": "data/silver/air_quality_measurements",
+  "row_count": 185473,
+  "cities": [
+    "Beijing",
+    "Berlin",
+    "Delhi",
+    "London",
+    "New York"
+  ],
+  "pollutants": [
+    "no2",
+    "o3",
+    "pm10",
+    "pm25"
+  ],
+  "duplicate_count": 0,
+  "null_checks": {
+    "city": 0,
+    "location_id": 0,
+    "pollutant": 0,
+    "measurement_value": 0,
+    "measurement_datetime": 0
+  },
+  "errors": []
+}
+```
+
+Supplementary row distribution from the latest local Silver run summary in this
+workspace:
+
+```json
+{
+  "city_counts": {
+    "Beijing": 37252,
+    "Berlin": 49165,
+    "Delhi": 18863,
+    "London": 43023,
+    "New York": 37170
+  },
+  "date_range": {
+    "min": "2023-12-31T19:30:00",
+    "max": "2026-03-11T18:30:00"
+  }
+}
+```
+
+## dbt test summary
+
+The committed dbt artifacts under `dbt/air_quality_project/` show a passing test
+run generated on `2026-03-14T22:42:36.988218Z`.
+
+Summary from `dbt/air_quality_project/logs/dbt.log` and
+`dbt/air_quality_project/target/run_results.json`:
+
+```text
+Finished running 25 data tests in 0 hours 0 minutes and 6.64 seconds.
+Completed successfully
+Done. PASS=25 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=25
+```
+
 ## Dashboard
 
 The final dashboard presents a five-city comparison of pollution trends and pollutant patterns.

@@ -2,6 +2,7 @@
 
 These are the current project docs worth reading:
 
+- `review-guide.md`: fastest reviewer-facing entry point into code, evidence, and run instructions
 - `zero-to-hero-tutorial.md`: full hands-on teaching guide from setup to execution evidence
 - `dashboard-design.md`: dashboard story and style guide
 - `architecture-decisions.md`: short ADR-style tradeoffs

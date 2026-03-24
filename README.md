@@ -179,6 +179,8 @@ Dashboard outputs:
 
 ## Dashboard
 
+![Dashboard overview](docs/images/dashboard_overview.png)
+
 - Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
 - PDF export: `docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf`
 

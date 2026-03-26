@@ -4,6 +4,22 @@ This project downloads OpenAQ archive data for five cities, transforms it with
 Spark, loads a BigQuery warehouse, builds dbt marts, and shows the result in a
 Looker Studio dashboard.
 
+Latest committed run evidence in this repo is from March 14, 2026.
+
+## Quick Review Path
+
+1. Read `README.md` for the project scope, architecture, and outputs.
+2. Open `docs/execution-evidence.md` for the committed run artifacts and verification notes.
+3. Review `docs/images/dashboard_overview.png` and `docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf`.
+4. Run `make test` for local unit checks that do not require cloud credentials.
+
+## Reviewer Prerequisites
+
+- For document-only review, no cloud access is required.
+- For local unit tests, install Python dependencies from `requirements.txt`.
+- For a full end-to-end rerun, you need `gcloud`, Terraform, Docker Compose, and access to the configured GCP project resources.
+- For local Airflow, copy `.env.example` to `.env` and set `GCP_PROJECT_ID`, `GCS_BUCKET_NAME`, and `GOOGLE_APPLICATION_CREDENTIALS`.
+
 ## Where to Look
 
 | Part | File |

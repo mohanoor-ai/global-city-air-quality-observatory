@@ -7,8 +7,28 @@ London, New York, Delhi, Beijing, and Berlin.
 
 Air quality affects public health, transport, and city policy, but the patterns
 are different from city to city. This project builds a batch pipeline that
-pulls OpenAQ archive data, prepares it for analysis, and shows cross-city
-trends in a dashboard.
+pulls [OpenAQ archive data](https://docs.openaq.org/aws/about), prepares it
+for analysis, and shows cross-city trends in a dashboard.
+
+Comparing air pollution across cities is harder than it should be because:
+
+- raw air-quality data is difficult to use directly for analysis
+- data from different cities is not always structured consistently
+- comparing pollution trends across cities takes too much manual work
+- decision-makers need a reliable way to monitor city-level air-quality patterns
+- there is no simple end-to-end view that turns raw data into dashboard-ready insights
+
+This project solves that by building a batch pipeline that collects
+[OpenAQ archive data](https://docs.openaq.org/aws/about), standardizes it, and
+presents cross-city trends in a dashboard.
+
+## Why Partitioning, Clustering, and dbt Matter
+
+The fact table is partitioned by `measurement_date` and clustered by `city` and
+`pollutant` because the project constantly filters by time, city, and
+pollutant. dbt sits on top of that warehouse layer to build
+reviewer-friendly reporting tables instead of leaving all analysis at raw
+measurement grain.
 
 ## Scope and Cities
 
@@ -20,9 +40,12 @@ The project is intentionally limited to five cities:
 - Beijing
 - Berlin
 
-The fixed scope is stored in `ingestion/location_targets.csv`.
+The fixed scope is stored in
+[ingestion/location_targets.csv](ingestion/location_targets.csv).
 
 ## Architecture Summary
+
+Source data: [OpenAQ archive](https://docs.openaq.org/aws/about)
 
 ```text
 OpenAQ archive
@@ -48,7 +71,7 @@ OpenAQ archive
 ## Pipeline Flow
 
 The official runtime path is the Airflow DAG in
-`airflow/dags/global_city_air_quality_observatory_dag.py`.
+[airflow/dags/global_city_air_quality_observatory_dag.py](airflow/dags/global_city_air_quality_observatory_dag.py).
 
 The DAG runs this flow:
 
@@ -108,14 +131,30 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Authenticate to GCP.
+2. Install `gcloud`, then authenticate and select your project.
 
 ```bash
+curl https://sdk.cloud.google.com | bash
+gcloud version
 gcloud auth login
 gcloud auth application-default login
+gcloud config set project <your-gcp-project-id>
 ```
 
-3. Create Terraform variables and provision infrastructure.
+3. Copy [`.env.example`](.env.example) to `.env`, save your GCP service account
+key JSON locally, and set:
+
+```bash
+cp .env.example .env
+```
+
+- `GCP_PROJECT_ID`
+- `GCS_BUCKET_NAME`
+- `GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/your-gcp-key.json`
+
+4. Create Terraform variables from
+[terraform/terraform.tfvars.example](terraform/terraform.tfvars.example) and
+provision infrastructure.
 
 ```bash
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
@@ -125,16 +164,15 @@ terraform apply -var-file=terraform.tfvars
 cd ..
 ```
 
-4. For a manual end-to-end run from the repo root:
+5. Run the pipeline from the repo root.
 
 ```bash
 make run
 ```
 
-5. For Airflow:
+Optional Airflow:
 
 ```bash
-cp .env.example .env
 make airflow-init
 make airflow-start
 ```
@@ -143,6 +181,13 @@ Airflow UI: `http://localhost:8080`
 
 If you are using WSL with Docker Desktop, enable WSL integration for this
 distro before running the Airflow targets.
+
+## Reproducibility
+
+- Fastest review path: read [docs/review-guide.md](docs/review-guide.md), then [docs/execution-evidence.md](docs/execution-evidence.md), then open the dashboard screenshot and PDF.
+- Local code verification is available with `make test` and does not require GCP credentials.
+- A full end-to-end rerun requires `gcloud`, Terraform, Docker Compose, and access to the configured GCP project, GCS bucket, and BigQuery datasets.
+- For local Airflow review, make sure `.env` includes `GCP_PROJECT_ID`, `GCS_BUCKET_NAME`, and `GOOGLE_APPLICATION_CREDENTIALS`.
 
 ## Outputs
 
@@ -176,19 +221,13 @@ Dashboard outputs:
 
 ## Proof and Evidence
 
-- Reviewer guide: `docs/review-guide.md`
-- Execution evidence: `docs/execution-evidence.md`
+- Latest committed run evidence in this repo is from March 14, 2026.
+- Reproducibility notes: [docs/review-guide.md](docs/review-guide.md)
+- Execution evidence: [docs/execution-evidence.md](docs/execution-evidence.md)
 
 ## Dashboard
 
 ![Dashboard overview](docs/images/dashboard_overview.png)
 
-- Live dashboard: `https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de`
-- PDF export: `docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf`
-
-## Why Partitioning, Clustering, and dbt Matter
-
-The fact table is partitioned by `measurement_date` and clustered by `city` and
-`pollutant` because the project constantly filters by time, city, and pollutant.
-dbt sits on top of that warehouse layer to build reviewer-friendly reporting
-tables instead of leaving all analysis at raw measurement grain.
+- Live dashboard: [Looker Studio report](https://lookerstudio.google.com/reporting/6432e2e1-4363-493c-bbf8-598c60bb49de)
+- PDF export: [docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf](docs/images/Global_City_Air_Quality_Observatory_Dashboard.pdf)
